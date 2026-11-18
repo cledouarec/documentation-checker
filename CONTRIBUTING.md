@@ -3,7 +3,7 @@
 ## Reporting issues
 
 Report bugs and feature requests through the
-[issue tracker](https://github.com/cledouarec/doc-checker/issues).
+[issue tracker](https://github.com/cledouarec/documentation-checker/issues).
 Before opening a new issue, check that it has not already been reported.
 
 ## Pull requests

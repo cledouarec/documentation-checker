@@ -11,14 +11,18 @@ import pytest
 from pypdf import PdfWriter
 from pypdf.generic import NameObject, TextStringObject
 
-from doc_checker.compare.engine import compare_documents
-from doc_checker.config import Config, PdfConfig
-from doc_checker.errors import InputError
-from doc_checker.extract import detect_format, load_document
-from doc_checker.extract.pdf import load_pdf, reader
-from doc_checker.images.pixels import TOO_LARGE
-from doc_checker.model.document import HEADING_SOURCE, NUMBER_ATTR, BlockKind
-from doc_checker.model.facts import OutlineEntry
+from documentation_checker.compare.engine import compare_documents
+from documentation_checker.config import Config, PdfConfig
+from documentation_checker.errors import InputError
+from documentation_checker.extract import detect_format, load_document
+from documentation_checker.extract.pdf import load_pdf, reader
+from documentation_checker.images.pixels import TOO_LARGE
+from documentation_checker.model.document import (
+    HEADING_SOURCE,
+    NUMBER_ATTR,
+    BlockKind,
+)
+from documentation_checker.model.facts import OutlineEntry
 from tests.builders import FIGURES_EN, SAMPLE_EN, SAMPLE_FR
 from tests.pdf_builders import (
     build_figure_list_pdf,
@@ -41,7 +45,7 @@ from tests.pdf_builders import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.model.document import Document
+    from documentation_checker.model.document import Document
 
 NUMBERS = "text.number_changed"
 SECTION_HEADINGS = [(s.title, s.level) for s in SAMPLE_EN.sections]

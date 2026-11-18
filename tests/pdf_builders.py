@@ -53,9 +53,9 @@ from reportlab.platypus import (
 )
 from reportlab.platypus.tableofcontents import TableOfContents
 
-from doc_checker.extract.pdf.layout import Line
-from doc_checker.extract.pdf.reader import PdfChar, PdfPageText
-from doc_checker.extract.pdf.segments import Segment
+from documentation_checker.extract.pdf.layout import Line
+from documentation_checker.extract.pdf.reader import PdfChar, PdfPageText
+from documentation_checker.extract.pdf.segments import Segment
 from tests.builders import (
     DocSpec,
     Figure,

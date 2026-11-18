@@ -14,12 +14,12 @@ from operator import itemgetter
 from pathlib import Path
 from typing import TYPE_CHECKING, Final, Literal
 
-from doc_checker.audit.engine import audit_document
-from doc_checker.compare.engine import compare_documents
-from doc_checker.config import Config
-from doc_checker.extract.common import assign_section_paths
-from doc_checker.images.refs import raster_ref
-from doc_checker.model.document import (
+from documentation_checker.audit.engine import audit_document
+from documentation_checker.compare.engine import compare_documents
+from documentation_checker.config import Config
+from documentation_checker.extract.common import assign_section_paths
+from documentation_checker.images.refs import raster_ref
+from documentation_checker.model.document import (
     FROM_OUTLINE,
     FROM_STYLE,
     HEADING_SOURCE,
@@ -30,9 +30,13 @@ from doc_checker.model.document import (
     PixelSource,
     SourceRef,
 )
-from doc_checker.model.facts import HtmlPageFacts
-from doc_checker.model.findings import Severity
-from doc_checker.text.normalize import loose_key, normalize_display, strict_key
+from documentation_checker.model.facts import HtmlPageFacts
+from documentation_checker.model.findings import Severity
+from documentation_checker.text.normalize import (
+    loose_key,
+    normalize_display,
+    strict_key,
+)
 from tests.image_builders import (
     blurred,
     drawing,
@@ -47,9 +51,9 @@ from tests.image_builders import (
 if TYPE_CHECKING:
     from PIL import Image
 
-    from doc_checker.audit.engine import AuditResult
-    from doc_checker.compare.engine import CompareResult
-    from doc_checker.model.findings import Finding
+    from documentation_checker.audit.engine import AuditResult
+    from documentation_checker.compare.engine import CompareResult
+    from documentation_checker.model.findings import Finding
 
 
 def make_block(

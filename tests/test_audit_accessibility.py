@@ -5,19 +5,19 @@ import time
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from doc_checker.audit.accessibility import (
+from documentation_checker.audit.accessibility import (
     FILE_NAME_ALT,
     GENERIC_LINK_TEXTS,
     UNMAPPED_PAGES_SHOWN,
     accessibility_drafts,
     prose_sample,
 )
-from doc_checker.audit.engine import audit_document
-from doc_checker.compare.aggregate import PATTERN_MAX_CHARS
-from doc_checker.config import AuditThresholds, Config
-from doc_checker.extract.loader import load_document
-from doc_checker.model.document import BlockKind, ImageRef, Link
-from doc_checker.model.facts import (
+from documentation_checker.audit.engine import audit_document
+from documentation_checker.compare.aggregate import PATTERN_MAX_CHARS
+from documentation_checker.config import AuditThresholds, Config
+from documentation_checker.extract.loader import load_document
+from documentation_checker.model.document import BlockKind, ImageRef, Link
+from documentation_checker.model.facts import (
     NO_STRUCTURE_TREE,
     HtmlPageFacts,
     PdfLink,
@@ -26,9 +26,9 @@ from doc_checker.model.facts import (
     TaggedElement,
     TagTree,
 )
-from doc_checker.model.findings import Severity
-from doc_checker.text.lang import LANG_SAMPLE_BLOCKS
-from doc_checker.text.normalize import ELLIPSIS
+from documentation_checker.model.findings import Severity
+from documentation_checker.text.lang import LANG_SAMPLE_BLOCKS
+from documentation_checker.text.normalize import ELLIPSIS
 from tests.builders import (
     SAMPLE_FR,
     link_text,
@@ -42,7 +42,7 @@ from tests.pdf_builders import build_tagged_pdf
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.compare.drafts import Draft
+    from documentation_checker.compare.drafts import Draft
 
 PDF = "doc.pdf"
 THRESHOLDS = AuditThresholds()

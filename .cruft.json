@@ -4,9 +4,9 @@
   "checkout": null,
   "context": {
     "cookiecutter": {
-      "project_name": "Doc Checker",
-      "project_slug": "doc-checker",
-      "package_name": "doc_checker",
+      "project_name": "Documentation Checker",
+      "project_slug": "documentation-checker",
+      "package_name": "documentation_checker",
       "project_description": "Check documentation format",
       "author_name": "Christophe Le Douarec",
       "author_email": "ledouarec@gmail.com",

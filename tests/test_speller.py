@@ -6,10 +6,10 @@ from typing import NoReturn
 
 import pytest
 
-from doc_checker.errors import DictionaryError
-from doc_checker.spell import speller as speller_module
-from doc_checker.spell.speller import Speller, other_language
-from doc_checker.spell.words import (
+from documentation_checker.errors import DictionaryError
+from documentation_checker.spell import speller as speller_module
+from documentation_checker.spell.speller import Speller, other_language
+from documentation_checker.spell.words import (
     MAX_WORD_CHARS,
     MAX_WORD_PARTS,
     skip_reason,

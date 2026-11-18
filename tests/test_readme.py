@@ -7,8 +7,8 @@ from typing import Final
 
 import click
 
-from doc_checker.cli import main
-from doc_checker.extract.html.profiles import PROFILE_NAMES
+from documentation_checker.cli import main
+from documentation_checker.extract.html.profiles import PROFILE_NAMES
 
 README: Final = (Path(__file__).parents[1] / "README.md").read_text(
     encoding="utf-8",
@@ -110,4 +110,4 @@ def test_readme_names_every_profile() -> None:
 
 def test_readme_tells_the_extra() -> None:
     """The README tells how to install the pdf-tables extra."""
-    assert "doc-checker[pdf-tables]" in README
+    assert "documentation-checker[pdf-tables]" in README

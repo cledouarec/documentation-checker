@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.extract.pdf.blocks import DraftBlock
-from doc_checker.extract.pdf.joining import (
+from documentation_checker.extract.pdf.blocks import DraftBlock
+from documentation_checker.extract.pdf.joining import (
     code_text,
     is_hyphen_break,
     prose_text,
@@ -17,7 +17,7 @@ from doc_checker.extract.pdf.joining import (
 from tests.pdf_builders import make_line
 
 if TYPE_CHECKING:
-    from doc_checker.extract.pdf.layout import Line
+    from documentation_checker.extract.pdf.layout import Line
 
 CODE_CHAR = 5.4  # Width of a character of the code font, in points.
 

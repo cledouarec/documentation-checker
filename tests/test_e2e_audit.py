@@ -9,10 +9,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.config import AuditThresholds, Config, SpellingConfig
-from doc_checker.images.pixels import open_raster
-from doc_checker.model.findings import Category, Finding, Severity
-from doc_checker.pipeline import run_audit
+from documentation_checker.config import (
+    AuditThresholds,
+    Config,
+    SpellingConfig,
+)
+from documentation_checker.images.pixels import open_raster
+from documentation_checker.model.findings import Category, Finding, Severity
+from documentation_checker.pipeline import run_audit
 from tests.builders import (
     FIGURES_EN,
     SAMPLE_EN,

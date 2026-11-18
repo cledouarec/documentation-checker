@@ -9,23 +9,26 @@ from typing import TYPE_CHECKING
 import click
 import pytest
 
-from doc_checker.audit.engine import audit_document
-from doc_checker.compare.engine import CompareResult, compare_documents
-from doc_checker.config import Config, HtmlConfig
-from doc_checker.errors import ConfigError
-from doc_checker.extract.html import load_html
-from doc_checker.images.refs import raster_ref
-from doc_checker.model.document import (
+from documentation_checker.audit.engine import audit_document
+from documentation_checker.compare.engine import (
+    CompareResult,
+    compare_documents,
+)
+from documentation_checker.config import Config, HtmlConfig
+from documentation_checker.errors import ConfigError
+from documentation_checker.extract.html import load_html
+from documentation_checker.images.refs import raster_ref
+from documentation_checker.model.document import (
     Block,
     BlockKind,
     Link,
     PixelSource,
     SourceRef,
 )
-from doc_checker.model.facts import HtmlPageFacts
-from doc_checker.model.findings import DiffSegment, Severity
-from doc_checker.pipeline import write_reports
-from doc_checker.report.context import (
+from documentation_checker.model.facts import HtmlPageFacts
+from documentation_checker.model.findings import DiffSegment, Severity
+from documentation_checker.pipeline import write_reports
+from documentation_checker.report.context import (
     IMAGES_NOT_READ,
     MAX_OCCURRENCES_SHOWN,
     Column,
@@ -34,14 +37,14 @@ from doc_checker.report.context import (
     relative_link,
     side_of,
 )
-from doc_checker.report.markdown import (
+from documentation_checker.report.markdown import (
     md_cell,
     md_cell_code,
     md_code,
     md_text,
     render_markdown,
 )
-from doc_checker.report.terminal import (
+from documentation_checker.report.terminal import (
     render_audit_summary,
     render_blocks,
     render_summary,
@@ -64,7 +67,7 @@ from tests.image_builders import drawing, encode
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.audit.engine import AuditResult
+    from documentation_checker.audit.engine import AuditResult
 
 REF_TEXT = (
     "Install the package with the default configuration before you start."
@@ -120,7 +123,7 @@ def test_markdown_report_sections(
     """The report has its sections and the highlighted differences."""
     path = render_markdown(result, tmp_path / "report.md")
     text = path.read_text(encoding="utf-8")
-    assert text.startswith("# doc-checker report: compare")
+    assert text.startswith("# documentation-checker report: compare")
     for expected in (
         "## Inputs",
         "## Summary",
@@ -836,7 +839,7 @@ def test_audit_markdown_report_has_one_column(tmp_path: Path) -> None:
     text = render_markdown(audit_result(), tmp_path / "report.md").read_text(
         encoding="utf-8",
     )
-    assert text.startswith("# doc-checker report: audit\n")
+    assert text.startswith("# documentation-checker report: audit\n")
     assert "| | Document |" in text
     assert "| Reference |" not in text
     assert (

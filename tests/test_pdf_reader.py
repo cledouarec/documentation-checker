@@ -24,10 +24,10 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 
-from doc_checker.errors import InputError
-from doc_checker.extract.pdf import reader
-from doc_checker.extract.pdf.catalog import PdfCatalog, read_catalog
-from doc_checker.extract.pdf.reader import (
+from documentation_checker.errors import InputError
+from documentation_checker.extract.pdf import reader
+from documentation_checker.extract.pdf.catalog import PdfCatalog, read_catalog
+from documentation_checker.extract.pdf.reader import (
     BOOKMARK_TITLE_BYTES,
     LABEL_LIMIT,
     METADATA_LIMIT,
@@ -42,8 +42,8 @@ from doc_checker.extract.pdf.reader import (
     read_metadata,
     read_page,
 )
-from doc_checker.extract.pdf.segments import build_segments
-from doc_checker.images.pixels import CANNOT_DECODE, TOO_LARGE
+from documentation_checker.extract.pdf.segments import build_segments
+from documentation_checker.images.pixels import CANNOT_DECODE, TOO_LARGE
 from tests.builders import FIGURES_EN, SAMPLE_EN, SAMPLE_FR
 from tests.image_builders import (
     PREDICTOR_COLUMNS,
@@ -74,8 +74,8 @@ from tests.pdf_builders import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.extract.pdf.reader import PdfImage, PdfPageText
-    from doc_checker.model.document import ImageRef
+    from documentation_checker.extract.pdf.reader import PdfImage, PdfPageText
+    from documentation_checker.model.document import ImageRef
 
 _JPEG = encode(drawing("setup"), "JPEG", quality=90)
 _PIXELS = drawing("setup").tobytes()  # 400 by 250 RGB pixels.

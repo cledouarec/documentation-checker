@@ -10,8 +10,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle
 
-from doc_checker.config import PdfConfig
-from doc_checker.extract.pdf.figures import (
+from documentation_checker.config import PdfConfig
+from documentation_checker.extract.pdf.figures import (
     CLUSTER_TEXT_MAX,
     Glyph,
     PathFacts,
@@ -20,16 +20,16 @@ from doc_checker.extract.pdf.figures import (
     is_drawing,
     vector_figures,
 )
-from doc_checker.extract.pdf.loader import load_pdf
-from doc_checker.extract.pdf.reader import (
+from documentation_checker.extract.pdf.loader import load_pdf
+from documentation_checker.extract.pdf.reader import (
     MAX_PAGE_FIGURES,
     NOT_RENDERED,
     open_pdf,
     read_page,
 )
-from doc_checker.images.load import RENDER_SIDE_MAX, PixelLoader
-from doc_checker.images.pixels import PAGE_LIMIT, TOO_LARGE
-from doc_checker.model.document import BlockKind
+from documentation_checker.images.load import RENDER_SIDE_MAX, PixelLoader
+from documentation_checker.images.pixels import PAGE_LIMIT, TOO_LARGE
+from documentation_checker.model.document import BlockKind
 from tests.builders import FIGURES_EN
 from tests.pdf_builders import (
     FIGURE_LABEL,

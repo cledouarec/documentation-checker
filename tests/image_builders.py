@@ -12,7 +12,7 @@ from typing import Literal
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from doc_checker.images.pixels import flatten
+from documentation_checker.images.pixels import flatten
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 

@@ -14,23 +14,26 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 
-from doc_checker.audit import images as audit_images
-from doc_checker.audit.engine import audit_document
-from doc_checker.audit.images import BLOCK_GRID_MIN, image_quality_drafts
-from doc_checker.config import AuditThresholds, Config
-from doc_checker.extract.loader import load_document
-from doc_checker.images.load import PixelLoader
-from doc_checker.images.metrics import PIXEL_LEVELS_MIN, ImageQuality
-from doc_checker.images.pixels import open_raster
-from doc_checker.images.refs import describe, raster_ref
-from doc_checker.model.document import (
+from documentation_checker.audit import images as audit_images
+from documentation_checker.audit.engine import audit_document
+from documentation_checker.audit.images import (
+    BLOCK_GRID_MIN,
+    image_quality_drafts,
+)
+from documentation_checker.config import AuditThresholds, Config
+from documentation_checker.extract.loader import load_document
+from documentation_checker.images.load import PixelLoader
+from documentation_checker.images.metrics import PIXEL_LEVELS_MIN, ImageQuality
+from documentation_checker.images.pixels import open_raster
+from documentation_checker.images.refs import describe, raster_ref
+from documentation_checker.model.document import (
     Block,
     BlockKind,
     ImageRef,
     PixelSource,
     SourceRef,
 )
-from doc_checker.model.findings import Severity
+from documentation_checker.model.findings import Severity
 from tests.builders import make_audit_document, make_image_block
 from tests.image_builders import (
     blurred,
@@ -43,7 +46,7 @@ from tests.image_builders import (
 )
 
 if TYPE_CHECKING:
-    from doc_checker.compare.drafts import Draft
+    from documentation_checker.compare.drafts import Draft
 
 THRESHOLDS = AuditThresholds()
 DIGEST = "1" * 32

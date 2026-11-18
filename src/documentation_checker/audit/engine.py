@@ -1,0 +1,136 @@
+# Copyright 2026 Christophe Le Douarec
+"""Audit a document: run the families of checks it is asked for.
+
+The family `STRUCTURE` checks the headings, the references, the captions and
+the pages of the document, by `structure_drafts` of
+`documentation_checker.audit.structure`, then its links, by
+`broken_link_drafts` of `documentation_checker.audit.links`. The family `A11Y`
+checks its accessibility, by `accessibility_drafts` of
+`documentation_checker.audit.accessibility`, after the structure. The family
+`IMAGES` checks its images, when they were read, by `image_quality_drafts` of
+`documentation_checker.audit.images`, next, with a `PixelLoader` that reads
+their pixels again. The family `TEXT` checks its text, by `text_drafts` of
+`documentation_checker.audit.text`, last, with a `Speller` that knows the
+personal words of the configuration. The drafts of the families then become
+findings as those of `compare` do, by `finalize_drafts` of
+`documentation_checker.compare.aggregate`: severities, filters, identifiers,
+groups.
+"""
+
+from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING, Final
+
+from documentation_checker.audit.accessibility import accessibility_drafts
+from documentation_checker.audit.images import image_quality_drafts
+from documentation_checker.audit.links import broken_link_drafts
+from documentation_checker.audit.structure import structure_drafts
+from documentation_checker.audit.text import TEXT, text_drafts
+from documentation_checker.compare.aggregate import finalize_drafts
+from documentation_checker.images.load import PixelLoader
+from documentation_checker.model.document import BlockKind
+from documentation_checker.spell.speller import Speller
+
+if TYPE_CHECKING:
+    from documentation_checker.compare.drafts import Draft
+    from documentation_checker.config import Config
+    from documentation_checker.model.document import Document
+    from documentation_checker.model.findings import Finding
+
+STRUCTURE: Final = "structure"
+A11Y: Final = "a11y"
+IMAGES: Final = "images"
+
+
+@dataclass(frozen=True, slots=True)
+class AuditStats:
+    """Figures about an audit.
+
+    Attributes:
+        pages: Pages of the document: HTML pages or PDF pages.
+        blocks: Blocks that are not images.
+        images: Image blocks.
+        links: Links checked; ``None`` when the family `STRUCTURE`, which
+            checks them, did not run.
+        checks: Families of checks run, in the order they were asked: the
+            family `IMAGES` does not run when the images were not read.
+        profile: Profile of the audit, ``"screen"`` or ``"print"``.
+        images_read: Whether the images were read.
+        words: Words spelled; ``None`` when the family `TEXT`, which
+            spells them, did not run.
+    """
+
+    pages: int
+    blocks: int
+    images: int
+    links: int | None
+    checks: tuple[str, ...]
+    profile: str
+    images_read: bool
+    words: int | None = None
+
+
+@dataclass(slots=True)
+class AuditResult:
+    """Outcome of the audit of a document.
+
+    Attributes:
+        doc: The document, with the warnings of the family `TEXT` after
+            its own.
+        findings: The findings.
+        stats: Statistics.
+        words: The words that the dictionaries do not know, each once, as
+            `TextOutcome` lists them.
+    """
+
+    doc: Document
+    findings: list[Finding]
+    stats: AuditStats
+    words: tuple[str, ...] = ()
+
+
+def audit_document(doc: Document, cfg: Config) -> AuditResult:
+    """Audit a document.
+
+    Args:
+        doc: The document, loaded with its audit facts.
+        cfg: Run configuration: its families of checks, its profile, its
+            thresholds, its severities and its filters.
+
+    Returns:
+        The findings, those of the structure first, then those of the
+        accessibility, of the images and of the text, each family in its
+        order, statistics, and the words that the dictionaries do not
+        know; the document is a copy that has the warnings of the text
+        after its own.
+    """
+    drafts: list[Draft] = []
+    links = None
+    if STRUCTURE in cfg.checks:
+        drafts += structure_drafts(doc)
+        broken, links = broken_link_drafts(doc)
+        drafts += broken
+    if A11Y in cfg.checks:
+        drafts += accessibility_drafts(doc, cfg.audit)
+    if IMAGES in cfg.checks and cfg.images:
+        with PixelLoader(doc.path) as loader:
+            drafts += image_quality_drafts(doc, loader, cfg.audit, cfg.profile)
+    words = None
+    unknown: tuple[str, ...] = ()
+    if TEXT in cfg.checks:
+        outcome = text_drafts(doc, cfg, Speller(cfg.spelling.words))
+        drafts += outcome.drafts
+        doc = replace(doc, warnings=[*doc.warnings, *outcome.warnings])
+        words = outcome.checked
+        unknown = outcome.words
+    images = sum(block.kind is BlockKind.IMAGE for block in doc.blocks)
+    stats = AuditStats(
+        pages=len(doc.parts),
+        blocks=len(doc.blocks) - images,
+        images=images,
+        links=links,
+        checks=tuple(c for c in cfg.checks if c != IMAGES or cfg.images),
+        profile=cfg.profile,
+        images_read=cfg.images,
+        words=words,
+    )
+    return AuditResult(doc, finalize_drafts(drafts, cfg), stats, unknown)

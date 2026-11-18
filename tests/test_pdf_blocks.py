@@ -6,17 +6,17 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.extract.pdf.blocks import (
+from documentation_checker.extract.pdf.blocks import (
     group_lines,
     merge_flows,
     paragraph_pitches,
     strip_list_marker,
 )
-from doc_checker.model.document import BlockKind
+from documentation_checker.model.document import BlockKind
 from tests.pdf_builders import make_line
 
 if TYPE_CHECKING:
-    from doc_checker.extract.pdf.layout import Line
+    from documentation_checker.extract.pdf.layout import Line
 
 
 def _groups(lines: list[Line]) -> list[list[str]]:

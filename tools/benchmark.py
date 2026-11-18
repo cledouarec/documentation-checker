@@ -15,11 +15,11 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from doc_checker.audit import engine
-from doc_checker.compare.engine import compare_documents
-from doc_checker.config import Config, PdfConfig
-from doc_checker.extract import load_document
-from doc_checker.pipeline import write_reports
+from documentation_checker.audit import engine
+from documentation_checker.compare.engine import compare_documents
+from documentation_checker.config import Config, PdfConfig
+from documentation_checker.extract import load_document
+from documentation_checker.pipeline import write_reports
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator, Sequence

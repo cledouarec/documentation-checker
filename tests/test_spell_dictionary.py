@@ -8,7 +8,7 @@ from importlib.resources import files
 
 import pytest
 
-from doc_checker.spell.dictionary import load_dictionary
+from documentation_checker.spell.dictionary import load_dictionary
 
 APOSTROPHE = "\U00002019"
 
@@ -66,7 +66,7 @@ def test_only_french_and_english_have_a_dictionary() -> None:
 
 def test_french_dictionary_ships_with_its_licence_and_source() -> None:
     """The data files, their licence and their source are in the package."""
-    data = files("doc_checker.spell") / "data" / "fr"
+    data = files("documentation_checker.spell") / "data" / "fr"
     names = {item.name for item in data.iterdir()}
     assert {
         "fr-toutesvariantes.aff",
@@ -90,7 +90,7 @@ def test_shipped_files_match_their_checksums() -> None:
     A checkout that converts line endings, as Git on Windows may, would
     change them: `.gitattributes` marks the data as no text.
     """
-    data = files("doc_checker.spell") / "data" / "fr"
+    data = files("documentation_checker.spell") / "data" / "fr"
     source = (data / "SOURCE.txt").read_text(encoding="utf-8")
     shipped = source.split("SHA-256 of the files shipped:")[1]
     sums = dict(

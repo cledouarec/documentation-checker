@@ -5,12 +5,16 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.extract.pdf.kinds import figure_list, is_caption, toc_pages
-from doc_checker.model.document import BlockKind
+from documentation_checker.extract.pdf.kinds import (
+    figure_list,
+    is_caption,
+    toc_pages,
+)
+from documentation_checker.model.document import BlockKind
 from tests.pdf_builders import make_line
 
 if TYPE_CHECKING:
-    from doc_checker.extract.pdf.layout import Line
+    from documentation_checker.extract.pdf.layout import Line
 
 # Three lines that end with a number, and three that end like a sentence.
 ENTRIES = ("Reference 8", "Command line 9", "Index 12")

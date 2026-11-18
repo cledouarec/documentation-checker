@@ -6,11 +6,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.extract.pdf.segments import body_size, build_segments
+from documentation_checker.extract.pdf.segments import (
+    body_size,
+    build_segments,
+)
 from tests.pdf_builders import make_chars, make_page
 
 if TYPE_CHECKING:
-    from doc_checker.extract.pdf.reader import PdfChar
+    from documentation_checker.extract.pdf.reader import PdfChar
 
 
 def _texts(*runs: list[PdfChar]) -> list[str]:

@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.config import HtmlConfig
-from doc_checker.extract.html import load_html
-from doc_checker.extract.html.links import (
+from documentation_checker.config import HtmlConfig
+from documentation_checker.extract.html import load_html
+from documentation_checker.extract.html.links import (
     normalize_url,
     resolve_links,
     site_base,
 )
-from doc_checker.model.document import Link
+from documentation_checker.model.document import Link
 from tests.builders import SAMPLE_EN, build_docusaurus_like
 
 if TYPE_CHECKING:

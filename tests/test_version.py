@@ -3,7 +3,7 @@
 
 import re
 
-from doc_checker import __version__
+from documentation_checker import __version__
 
 
 def test_version_is_semantic() -> None:

@@ -7,15 +7,15 @@ import lxml.etree
 import lxml.html
 import pytest
 
-from doc_checker.config import HtmlConfig
-from doc_checker.errors import InputError
-from doc_checker.extract.html.chrome import find_chrome
-from doc_checker.extract.html.ordering import (
+from documentation_checker.config import HtmlConfig
+from documentation_checker.errors import InputError
+from documentation_checker.extract.html.chrome import find_chrome
+from documentation_checker.extract.html.ordering import (
     order_pages,
     path_sort_key,
     resolve_href,
 )
-from doc_checker.extract.html.site import (
+from documentation_checker.extract.html.site import (
     HtmlPage,
     discover_pages,
     drops_cdata,
@@ -197,7 +197,10 @@ def test_page_over_the_size_limit_is_refused(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A page larger than the limit is not read, and the error says why."""
-    monkeypatch.setattr("doc_checker.extract.html.site.MAX_PAGE_BYTES", 1_000)
+    monkeypatch.setattr(
+        "documentation_checker.extract.html.site.MAX_PAGE_BYTES",
+        1_000,
+    )
 
     def unread(_self: Path) -> bytes:
         msg = "the page was read"

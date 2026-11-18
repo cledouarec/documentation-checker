@@ -6,7 +6,7 @@ from collections import Counter
 
 import pytest
 
-from doc_checker.text.normalize import (
+from documentation_checker.text.normalize import (
     count_marks,
     loose_key,
     normalize_display,

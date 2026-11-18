@@ -5,13 +5,18 @@ from dataclasses import replace
 
 import pytest
 
-from doc_checker.compare.align import align
-from doc_checker.compare.drafts import ARROW
-from doc_checker.compare.engine import compare_documents
-from doc_checker.compare.links import anchor_index, link_drafts
-from doc_checker.config import Config, IgnoreConfig
-from doc_checker.model.document import Block, BlockKind, Document, Link
-from doc_checker.model.findings import DiffSegment, Finding, Severity
+from documentation_checker.compare.align import align
+from documentation_checker.compare.drafts import ARROW
+from documentation_checker.compare.engine import compare_documents
+from documentation_checker.compare.links import anchor_index, link_drafts
+from documentation_checker.config import Config, IgnoreConfig
+from documentation_checker.model.document import (
+    Block,
+    BlockKind,
+    Document,
+    Link,
+)
+from documentation_checker.model.findings import DiffSegment, Finding, Severity
 from tests.builders import SPLIT_PARTS, SPLIT_WHOLE, make_block, make_document
 
 C, MA = Severity.CRITICAL, Severity.MAJOR

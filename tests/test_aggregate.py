@@ -3,13 +3,13 @@
 
 import pytest
 
-from doc_checker.compare.aggregate import (
+from documentation_checker.compare.aggregate import (
     GROUP_MIN_OCCURRENCES,
     group_findings,
     text_pattern,
 )
-from doc_checker.model.document import SourceRef
-from doc_checker.model.findings import (
+from documentation_checker.model.document import SourceRef
+from documentation_checker.model.findings import (
     Category,
     DiffSegment,
     Finding,

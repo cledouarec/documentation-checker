@@ -10,9 +10,9 @@ import lxml.html
 import pytest
 from click.testing import CliRunner
 
-from doc_checker import __version__
-from doc_checker import cli as cli_module
-from doc_checker.cli import main
+from documentation_checker import __version__
+from documentation_checker import cli as cli_module
+from documentation_checker.cli import main
 from tests.builders import (
     FIGURES_EN,
     SAMPLE_EN,
@@ -121,7 +121,7 @@ def test_pdf_tables_without_the_extra_exits_2(
     pdf = build_table_pdf(tmp_path / "t.pdf", margin=72, grid=True)
     result = CliRunner().invoke(main, ["extract", str(pdf), "--pdf-tables"])
     assert result.exit_code == 2, result.output
-    assert "pip install 'doc-checker[pdf-tables]'" in result.output
+    assert "pip install 'documentation-checker[pdf-tables]'" in result.output
 
 
 @pytest.mark.parametrize("command", ["compare", "audit"])
@@ -159,7 +159,7 @@ def test_pdf_tables_without_the_extra_exit_2_on_html(
     how = ["--pdf-tables"] if asked == "option" else ["-c", str(conf)]
     result = CliRunner().invoke(main, [command, *inputs, *out, *how])
     assert result.exit_code == 2, result.output
-    assert "pip install 'doc-checker[pdf-tables]'" in result.output
+    assert "pip install 'documentation-checker[pdf-tables]'" in result.output
 
 
 def test_compare_writes_both_reports(tmp_path: Path) -> None:
@@ -605,7 +605,10 @@ def test_page_over_the_size_limit_exits_3(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """An oversized page is an unreadable input."""
-    monkeypatch.setattr("doc_checker.extract.html.site.MAX_PAGE_BYTES", 1_000)
+    monkeypatch.setattr(
+        "documentation_checker.extract.html.site.MAX_PAGE_BYTES",
+        1_000,
+    )
     page = tmp_path / "big.html"
     page.write_text("<p>" + "word " * 400 + "</p>", encoding="utf-8")
     result = CliRunner().invoke(main, ["extract", str(page)])

@@ -7,10 +7,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.compare.aggregate import GROUP_MIN_OCCURRENCES
-from doc_checker.config import DEFAULT_HTML_EXCLUDE, Config, HtmlConfig
-from doc_checker.model.findings import Finding, Severity
-from doc_checker.pipeline import run_compare
+from documentation_checker.compare.aggregate import GROUP_MIN_OCCURRENCES
+from documentation_checker.config import (
+    DEFAULT_HTML_EXCLUDE,
+    Config,
+    HtmlConfig,
+)
+from documentation_checker.model.findings import Finding, Severity
+from documentation_checker.pipeline import run_compare
 from tests.builders import (
     FIGURES_EN,
     SAMPLE_EN,

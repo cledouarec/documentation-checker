@@ -9,16 +9,16 @@ from typing import TYPE_CHECKING, Final
 
 import lxml.html
 
-from doc_checker.compare.engine import compare_documents
-from doc_checker.config import Config
-from doc_checker.extract import load_document
-from doc_checker.extract.html.dom import mark_titles
-from doc_checker.extract.html.facts import page_ids
-from doc_checker.extract.html.ordering import nav_links, resolve_href
-from doc_checker.extract.html.profiles import GLOBAL_TITLES
-from doc_checker.extract.html.site import HtmlPage
-from doc_checker.model.document import BlockKind
-from doc_checker.pipeline import run_audit, run_compare
+from documentation_checker.compare.engine import compare_documents
+from documentation_checker.config import Config
+from documentation_checker.extract import load_document
+from documentation_checker.extract.html.dom import mark_titles
+from documentation_checker.extract.html.facts import page_ids
+from documentation_checker.extract.html.ordering import nav_links, resolve_href
+from documentation_checker.extract.html.profiles import GLOBAL_TITLES
+from documentation_checker.extract.html.site import HtmlPage
+from documentation_checker.model.document import BlockKind
+from documentation_checker.pipeline import run_audit, run_compare
 from tests.builders import (
     DocSpec,
     Section,
@@ -98,7 +98,10 @@ def test_compare_scales_linearly(
 ) -> None:
     """Comparing four times larger builds costs at most eight times more."""
     # The time of this process must hold the reading of the inputs.
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 10**18)
+    monkeypatch.setattr(
+        "documentation_checker.pipeline.PARALLEL_MIN_BYTES",
+        10**18,
+    )
     sites = {
         size: (
             build_sphinx_like(bench_spec(size), tmp_path / f"r{size}"),
@@ -304,7 +307,7 @@ def test_nested_navigation_is_walked_once(
         return resolve_href(href, page_rel)
 
     monkeypatch.setattr(
-        "doc_checker.extract.html.ordering.resolve_href",
+        "documentation_checker.extract.html.ordering.resolve_href",
         recorded,
     )
     links = "".join(f'<a href="p{i}.html">{i}</a>' for i in range(100))
