@@ -43,7 +43,16 @@ enforced by [Commitizen](https://commitizen-tools.github.io/commitizen/).
 ### Updating the changelog
 
 The changelog is generated automatically by Commitizen from the commit
-history during the release workflow — do not edit it by hand.
+history — do not edit it by hand.
+
+When commits are pushed on `main`, a GitHub action opens or updates a pull
+request which bumps the version and updates the changelog. Once this pull
+request is merged, the new version is tagged, released on GitHub and
+published on PyPI. The new version depends on the commit types:
+
+- `feat`: minor version
+- `fix`, `perf` and `refactor`: patch version
+- breaking change: major version
 
 ## Developing
 
