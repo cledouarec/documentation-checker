@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Not yet honoured for uv, see dependabot/dependabot-core#16112
+    versioning-strategy: "increase-if-necessary"
+    commit-message:
+      prefix: "build"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build"
+    groups:
+      all-hooks:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    groups:
+      all-actions:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
