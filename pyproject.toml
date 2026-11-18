@@ -1,6 +1,6 @@
 [project]
 name = "documentation-checker"
-version = "0.1.0"
+version = "0.0.0"
 description = "Compare and audit PDF and HTML documentation"
 authors = [
     { name = "Christophe Le Douarec", email = "ledouarec@gmail.com" },
@@ -81,10 +81,10 @@ module-name = "documentation_checker"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.1.0"
+version_provider = "uv"
+update_changelog_on_bump = true
 version_files = [
     "src/documentation_checker/__init__.py:__version__",
-    "pyproject.toml:^version",
 ]
 style = [
     ["qmark", "fg:#ff9d00 bold"],

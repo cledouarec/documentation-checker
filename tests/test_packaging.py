@@ -95,18 +95,21 @@ def test_tables_extra_stays_optional() -> None:
     ]
 
 
+# The archives are named after the project, its dashes made underscores, and
+# its version, which each release changes.
+STEM: Final = f"{PROJECT['name'].replace('-', '_')}-{PROJECT['version']}"
 SDIST_ROOT_FILES: Final = {
-    "documentation_checker-0.1.0",
-    "documentation_checker-0.1.0/LICENSE",
-    "documentation_checker-0.1.0/PKG-INFO",
-    "documentation_checker-0.1.0/README.md",
-    "documentation_checker-0.1.0/THIRD_PARTY_NOTICES.md",
-    "documentation_checker-0.1.0/pyproject.toml",
-    "documentation_checker-0.1.0/pyproject.toml.orig",
-    "documentation_checker-0.1.0/src",
-    "documentation_checker-0.1.0/src/documentation_checker",
+    STEM,
+    f"{STEM}/LICENSE",
+    f"{STEM}/PKG-INFO",
+    f"{STEM}/README.md",
+    f"{STEM}/THIRD_PARTY_NOTICES.md",
+    f"{STEM}/pyproject.toml",
+    f"{STEM}/pyproject.toml.orig",
+    f"{STEM}/src",
+    f"{STEM}/src/documentation_checker",
 }
-DIST_INFO: Final = "documentation_checker-0.1.0.dist-info/"
+DIST_INFO: Final = f"{STEM}.dist-info/"
 LICENCE_FILES: Final = (
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
@@ -129,11 +132,9 @@ def test_built_sdist_and_wheel_hold_the_licences(tmp_path: Path) -> None:
         check=True,
         capture_output=True,
     )
-    with tarfile.open(
-        tmp_path / "documentation_checker-0.1.0.tar.gz",
-    ) as sdist:
+    with tarfile.open(tmp_path / f"{STEM}.tar.gz") as sdist:
         names = set(sdist.getnames())
-    prefix = "documentation_checker-0.1.0/src/documentation_checker/"
+    prefix = f"{STEM}/src/documentation_checker/"
     assert {n for n in names if not n.startswith(prefix)} == SDIST_ROOT_FILES
     for name in (
         "fr-toutesvariantes.aff",
@@ -141,9 +142,7 @@ def test_built_sdist_and_wheel_hold_the_licences(tmp_path: Path) -> None:
         "LICENSE",
     ):
         assert f"{prefix}spell/data/fr/{name}" in names
-    with zipfile.ZipFile(
-        tmp_path / "documentation_checker-0.1.0-py3-none-any.whl",
-    ) as wheel:
+    with zipfile.ZipFile(tmp_path / f"{STEM}-py3-none-any.whl") as wheel:
         files = {n for n in wheel.namelist() if not n.endswith("/")}
         metadata = wheel.read(f"{DIST_INFO}METADATA").decode("utf-8")
     info = {

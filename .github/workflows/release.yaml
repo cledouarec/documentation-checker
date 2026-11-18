@@ -1,3 +1,6 @@
+# This workflow will release the version merged on main, then open a pull request bumping the version and updating the changelog
+# For more information see: https://commitizen-tools.github.io/commitizen/tutorials/github_actions/
+
 name: Bump version
 
 on:
@@ -5,25 +8,78 @@ on:
     branches: [ main ]
 
 jobs:
-  bump-version:
-    if: "!startsWith(github.event.head_commit.message, 'bump:')"
-    name: "Bump version and create changelog with commitizen"
+  release:
+    name: "Release the new version merged on main"
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+
     steps:
     - name: Check out
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
-        token: '${{ secrets.PERSONAL_ACCESS_TOKEN }}'
-    - name: Create bump and changelog
-      uses: commitizen-tools/commitizen-action@master
-      with:
-        github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        changelog_increment_filename: body.md
+    # Only a version bumped by commitizen has its notes in the changelog, so
+    # the placeholder version 0.0.0 is never released
+    - name: Find the version to release and its notes
+      id: version
+      run: |
+        version=$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        awk -v version="$version" '/^## / { if (found) exit; found = ($2 == version) } found' CHANGELOG.md > body.md
+        if [ -s body.md ] && ! git rev-parse -q --verify "refs/tags/$version" > /dev/null; then
+          echo "release=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "release=false" >> "$GITHUB_OUTPUT"
+        fi
     - name: Release
-      uses: softprops/action-gh-release@v1
+      if: steps.version.outputs.release == 'true'
+      uses: softprops/action-gh-release@v3
       with:
-        body_path: "body.md"
-        tag_name: ${{ env.REVISION }}
+        body_path: body.md
+        tag_name: ${{ steps.version.outputs.version }}
+        target_commitish: ${{ github.sha }}
+    # A tag created with GITHUB_TOKEN does not trigger the publish workflow
+    - name: Publish
+      if: steps.version.outputs.release == 'true'
+      run: gh workflow run publish.yaml --ref "$VERSION"
       env:
-        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ steps.version.outputs.version }}
+
+  bump-version:
+    name: "Open the pull request bumping the version with commitizen"
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Check out
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    # Exit codes 3 and 21 mean that no commit requires a new version
+    - name: Bump the version and update the changelog
+      uses: commitizen-tools/commitizen-action@0.27.1
+      with:
+        commit: false
+        push: false
+        no_raise: "3,21"
+        changelog_increment_filename: body.md
+        git_redirect_stderr: true
+    - name: Open or update the pull request
+      if: env.REVISION != env.PREVIOUS_REVISION
+      uses: peter-evans/create-pull-request@v8
+      with:
+        branch: bump-version
+        add-paths: |
+          CHANGELOG.md
+          pyproject.toml
+          uv.lock
+          src/documentation_checker/__init__.py
+        commit-message: "bump: version ${{ env.PREVIOUS_REVISION }} → ${{ env.REVISION }}"
+        title: "bump: version ${{ env.PREVIOUS_REVISION }} → ${{ env.REVISION }}"
+        body-path: body.md
