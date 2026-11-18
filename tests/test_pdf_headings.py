@@ -3,9 +3,9 @@
 
 import pytest
 
-from doc_checker.extract.pdf.blocks import DraftBlock
-from doc_checker.extract.pdf.chrome import HEADING_MIN_SIZE
-from doc_checker.extract.pdf.headings import (
+from documentation_checker.extract.pdf.blocks import DraftBlock
+from documentation_checker.extract.pdf.chrome import HEADING_MIN_SIZE
+from documentation_checker.extract.pdf.headings import (
     HEADING_MAX_LINES,
     HEADING_MAX_WORDS,
     bookmark_levels,
@@ -13,7 +13,7 @@ from doc_checker.extract.pdf.headings import (
     heading_levels,
     style_levels,
 )
-from doc_checker.extract.pdf.reader import Bookmark
+from documentation_checker.extract.pdf.reader import Bookmark
 from tests.pdf_builders import make_line
 
 BODY = 11.0  # The body size of the test documents, in points.

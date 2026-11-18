@@ -10,23 +10,31 @@ import numpy as np
 import pytest
 from PIL import Image, ImageDraw, ImageFilter
 
-from doc_checker.compare.engine import compare_documents
-from doc_checker.compare.images import (
+from documentation_checker.compare.engine import compare_documents
+from documentation_checker.compare.images import (
     PHASH_MAX,
     Placed,
     image_drafts,
     match_images,
     placed_images,
 )
-from doc_checker.config import Config, HtmlConfig
-from doc_checker.extract.html import load_html
-from doc_checker.images.hashing import hamming, phash
-from doc_checker.images.load import PixelLoader
-from doc_checker.images.pixels import EXTERNAL, NOT_FOUND
-from doc_checker.images.refs import content_digest, pixels_ref, raster_ref
-from doc_checker.images.svg import parse_svg
-from doc_checker.model.document import BlockKind, ImageRef, PixelSource
-from doc_checker.model.findings import Category, Severity
+from documentation_checker.config import Config, HtmlConfig
+from documentation_checker.extract.html import load_html
+from documentation_checker.images.hashing import hamming, phash
+from documentation_checker.images.load import PixelLoader
+from documentation_checker.images.pixels import EXTERNAL, NOT_FOUND
+from documentation_checker.images.refs import (
+    content_digest,
+    pixels_ref,
+    raster_ref,
+)
+from documentation_checker.images.svg import parse_svg
+from documentation_checker.model.document import (
+    BlockKind,
+    ImageRef,
+    PixelSource,
+)
+from documentation_checker.model.findings import Category, Severity
 from tests.builders import (
     PARAGRAPHS,
     make_block,
@@ -46,8 +54,8 @@ from tests.image_builders import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from doc_checker.compare.engine import CompareResult
-    from doc_checker.model.document import Block
+    from documentation_checker.compare.engine import CompareResult
+    from documentation_checker.model.document import Block
 
 TEXT = [make_block(text) for text in PARAGRAPHS]
 CAPTION = make_block("Steps of the installer", BlockKind.CAPTION)

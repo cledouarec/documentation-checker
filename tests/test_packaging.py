@@ -67,7 +67,7 @@ def test_licence_expression_declares_the_bundled_dictionary() -> None:
     assert PROJECT["license-files"] == [
         "LICENSE",
         "THIRD_PARTY_NOTICES.md",
-        "src/doc_checker/spell/data/fr/LICENSE",
+        "src/documentation_checker/spell/data/fr/LICENSE",
     ]
     for name in PROJECT["license-files"]:
         assert (ROOT / name).is_file(), name
@@ -96,21 +96,21 @@ def test_tables_extra_stays_optional() -> None:
 
 
 SDIST_ROOT_FILES: Final = {
-    "doc_checker-0.1.0",
-    "doc_checker-0.1.0/LICENSE",
-    "doc_checker-0.1.0/PKG-INFO",
-    "doc_checker-0.1.0/README.md",
-    "doc_checker-0.1.0/THIRD_PARTY_NOTICES.md",
-    "doc_checker-0.1.0/pyproject.toml",
-    "doc_checker-0.1.0/pyproject.toml.orig",
-    "doc_checker-0.1.0/src",
-    "doc_checker-0.1.0/src/doc_checker",
+    "documentation_checker-0.1.0",
+    "documentation_checker-0.1.0/LICENSE",
+    "documentation_checker-0.1.0/PKG-INFO",
+    "documentation_checker-0.1.0/README.md",
+    "documentation_checker-0.1.0/THIRD_PARTY_NOTICES.md",
+    "documentation_checker-0.1.0/pyproject.toml",
+    "documentation_checker-0.1.0/pyproject.toml.orig",
+    "documentation_checker-0.1.0/src",
+    "documentation_checker-0.1.0/src/documentation_checker",
 }
-DIST_INFO: Final = "doc_checker-0.1.0.dist-info/"
+DIST_INFO: Final = "documentation_checker-0.1.0.dist-info/"
 LICENCE_FILES: Final = (
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
-    "src/doc_checker/spell/data/fr/LICENSE",
+    "src/documentation_checker/spell/data/fr/LICENSE",
 )
 
 
@@ -129,9 +129,11 @@ def test_built_sdist_and_wheel_hold_the_licences(tmp_path: Path) -> None:
         check=True,
         capture_output=True,
     )
-    with tarfile.open(tmp_path / "doc_checker-0.1.0.tar.gz") as sdist:
+    with tarfile.open(
+        tmp_path / "documentation_checker-0.1.0.tar.gz",
+    ) as sdist:
         names = set(sdist.getnames())
-    prefix = "doc_checker-0.1.0/src/doc_checker/"
+    prefix = "documentation_checker-0.1.0/src/documentation_checker/"
     assert {n for n in names if not n.startswith(prefix)} == SDIST_ROOT_FILES
     for name in (
         "fr-toutesvariantes.aff",
@@ -140,7 +142,7 @@ def test_built_sdist_and_wheel_hold_the_licences(tmp_path: Path) -> None:
     ):
         assert f"{prefix}spell/data/fr/{name}" in names
     with zipfile.ZipFile(
-        tmp_path / "doc_checker-0.1.0-py3-none-any.whl",
+        tmp_path / "documentation_checker-0.1.0-py3-none-any.whl",
     ) as wheel:
         files = {n for n in wheel.namelist() if not n.endswith("/")}
         metadata = wheel.read(f"{DIST_INFO}METADATA").decode("utf-8")
@@ -154,9 +156,11 @@ def test_built_sdist_and_wheel_hold_the_licences(tmp_path: Path) -> None:
         "entry_points.txt",
         *(f"licenses/{n}" for n in LICENCE_FILES),
     }
-    assert all(n.startswith(("doc_checker/", DIST_INFO)) for n in files)
-    assert "doc_checker/spell/data/fr/LICENSE" in files
-    assert "doc_checker/spell/data/fr/SOURCE.txt" in files
+    assert all(
+        n.startswith(("documentation_checker/", DIST_INFO)) for n in files
+    )
+    assert "documentation_checker/spell/data/fr/LICENSE" in files
+    assert "documentation_checker/spell/data/fr/SOURCE.txt" in files
     assert "License-Expression: Apache-2.0 AND MPL-2.0" in metadata
     for name in LICENCE_FILES:
         assert f"License-File: {name}" in metadata

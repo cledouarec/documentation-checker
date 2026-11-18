@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.config import Config
-from doc_checker.model.findings import Severity
-from doc_checker.pipeline import run_compare
+from documentation_checker.config import Config
+from documentation_checker.model.findings import Severity
+from documentation_checker.pipeline import run_compare
 from tests.builders import (
     FIGURES_EN,
     Defect,
@@ -25,7 +25,7 @@ from tests.pdf_builders import build_fpdf2_pdf, build_reportlab_pdf
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.model.findings import Finding
+    from documentation_checker.model.findings import Finding
 
 C, MA, MI, IN = (
     Severity.CRITICAL,

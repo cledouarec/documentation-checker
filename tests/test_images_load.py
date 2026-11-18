@@ -6,12 +6,16 @@ from typing import TYPE_CHECKING, Literal
 import pypdfium2.raw as pdfium_c
 import pytest
 
-from doc_checker.config import PdfConfig
-from doc_checker.extract.pdf.loader import load_pdf
-from doc_checker.images.load import PixelLoader, least_length
-from doc_checker.images.pixels import TOO_LARGE, UnreadableImage, open_raster
-from doc_checker.images.refs import raster_ref
-from doc_checker.model.document import PixelSource
+from documentation_checker.config import PdfConfig
+from documentation_checker.extract.pdf.loader import load_pdf
+from documentation_checker.images.load import PixelLoader, least_length
+from documentation_checker.images.pixels import (
+    TOO_LARGE,
+    UnreadableImage,
+    open_raster,
+)
+from documentation_checker.images.refs import raster_ref
+from documentation_checker.model.document import PixelSource
 from tests.builders import FIGURES_EN
 from tests.image_builders import drawing, encode, progressive_jpeg
 from tests.pdf_builders import build_image_stream_pdf, build_reportlab_pdf

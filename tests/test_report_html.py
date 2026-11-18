@@ -12,13 +12,24 @@ from typing import TYPE_CHECKING
 import lxml.html
 import pytest
 
-from doc_checker.audit.engine import audit_document
-from doc_checker.compare.engine import CompareResult, compare_documents
-from doc_checker.config import Config, HtmlConfig
-from doc_checker.extract.html import load_html
-from doc_checker.images.svg import parse_svg
-from doc_checker.model.document import BlockKind, ImageRef, Link, SourceRef
-from doc_checker.report.html import content_security_policy, render_html
+from documentation_checker.audit.engine import audit_document
+from documentation_checker.compare.engine import (
+    CompareResult,
+    compare_documents,
+)
+from documentation_checker.config import Config, HtmlConfig
+from documentation_checker.extract.html import load_html
+from documentation_checker.images.svg import parse_svg
+from documentation_checker.model.document import (
+    BlockKind,
+    ImageRef,
+    Link,
+    SourceRef,
+)
+from documentation_checker.report.html import (
+    content_security_policy,
+    render_html,
+)
 from tests.builders import (
     PARAGRAPHS,
     audit_result,
@@ -76,7 +87,7 @@ def _isolated(style: str) -> set[str]:
 def test_html_report_structure(tmp_path: Path, result: CompareResult) -> None:
     """The report has its header, its filters and one article per finding."""
     tree = _tree(render_html(result, tmp_path / "report.html"))
-    assert tree.findtext(".//title") == "doc-checker report: compare"
+    assert tree.findtext(".//title") == "documentation-checker report: compare"
     articles = tree.cssselect("article.finding")
     assert [
         (a.get("data-severity"), a.get("data-category"), a.get("data-rule"))
@@ -332,7 +343,7 @@ def test_html_report_header_counts_findings(
     """The header lists the inputs and counts the findings by severity."""
     tree = _tree(render_html(result, tmp_path / "report.html"))
     (header,) = tree.cssselect("header#summary")
-    assert header.findtext("h1") == "doc-checker report: compare"
+    assert header.findtext("h1") == "documentation-checker report: compare"
     counts = [
         (li.get("data-severity"), li.cssselect("span.count")[0].text)
         for li in header.cssselect("ul.counts > li")
@@ -499,7 +510,7 @@ def test_audit_html_report_has_one_column(tmp_path: Path) -> None:
     text = render_html(audit_result(), tmp_path / "report.html").read_text(
         encoding="utf-8",
     )
-    assert "<title>doc-checker report: audit</title>" in text
+    assert "<title>documentation-checker report: audit</title>" in text
     assert '<th scope="col">Document</th>' in text
     assert "Reference</th>" not in text
     assert '<div class="sides single">' in text
@@ -546,7 +557,7 @@ def test_compare_html_report_keeps_two_columns(
 def test_audit_html_report_tells_the_document(tmp_path: Path) -> None:
     """The inputs, the place and the side of a finding are on one column."""
     tree = _tree(render_html(audit_result(), tmp_path / "report.html"))
-    assert tree.findtext(".//h1") == "doc-checker report: audit"
+    assert tree.findtext(".//h1") == "documentation-checker report: audit"
     rows = [
         (row.findtext("th"), [cell.text for cell in row.cssselect("td")])
         for row in tree.cssselect("table.inputs tbody tr")

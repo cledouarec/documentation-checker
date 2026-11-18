@@ -10,8 +10,8 @@ import numpy as np
 import pytest
 from PIL import Image, ImageDraw
 
-from doc_checker.compare.verdicts import Verdict, judge
-from doc_checker.images.metrics import (
+from documentation_checker.compare.verdicts import Verdict, judge
+from documentation_checker.images.metrics import (
     ImageQuality,
     adjacent_changes,
     assess,
@@ -22,9 +22,9 @@ from doc_checker.images.metrics import (
     grid,
     measure,
 )
-from doc_checker.images.pixels import open_raster
-from doc_checker.images.refs import raster_ref
-from doc_checker.model.findings import Severity
+from documentation_checker.images.pixels import open_raster
+from documentation_checker.images.refs import raster_ref
+from documentation_checker.model.findings import Severity
 from tests.image_builders import (
     blurred,
     drawing,

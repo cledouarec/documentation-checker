@@ -7,27 +7,27 @@ import time
 from dataclasses import replace
 from typing import TYPE_CHECKING, NoReturn
 
-from doc_checker.audit.spelling import TEXT_DRAFTS_PER_RULE
-from doc_checker.audit.text import (
+from documentation_checker.audit.spelling import TEXT_DRAFTS_PER_RULE
+from documentation_checker.audit.text import (
     GUARD_MIN_WORDS,
     LANGUAGE_RULES,
     TEXT,
     UNKNOWN_SHARE_MAX,
     text_drafts,
 )
-from doc_checker.config import Config
-from doc_checker.model.document import BlockKind
-from doc_checker.model.findings import Severity
-from doc_checker.spell import speller as speller_module
-from doc_checker.spell.dictionary import load_dictionary
-from doc_checker.spell.speller import Speller
+from documentation_checker.config import Config
+from documentation_checker.model.document import BlockKind
+from documentation_checker.model.findings import Severity
+from documentation_checker.spell import speller as speller_module
+from documentation_checker.spell.dictionary import load_dictionary
+from documentation_checker.spell.speller import Speller
 from tests.builders import make_audit_document, make_block, sentence
 
 if TYPE_CHECKING:
     import pytest
 
-    from doc_checker.audit.text import TextOutcome
-    from doc_checker.model.document import Block, Document
+    from documentation_checker.audit.text import TextOutcome
+    from documentation_checker.model.document import Block, Document
 
 CONFIG = Config()
 SPANISH = (

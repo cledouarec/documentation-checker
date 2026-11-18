@@ -1,29 +1,29 @@
-# Doc Checker
+# Documentation Checker
 
 ## Overview
 
 Compare and audit PDF and HTML documentation.
 
 When a documentation moves to another generator (Sphinx to MkDocs, LaTeX to
-another toolchain...), `doc-checker compare` checks that nothing was lost or
-altered: missing sections and paragraphs, changed numbers or negations,
-typos, which the dictionaries tell from corrections, lost accents or
-ligatures, broken encodings. It also reports headings, tables, code and
-lists that lose their kind, headings whose level changed, and links that
-are lost, broken or pointed elsewhere. It compares the images too:
-missing, added and replaced images, degraded images (resolution,
-sharpness, SSIM, JPEG quality, colors, transparency), re-encoded images,
-rasterized figures and lost alternative texts. When five findings or more of
-one rule make the same change, such as the same lost accent or the same
-missing block, they are reported as a single grouped finding; moved, split
-or merged blocks and missing sections are never grouped. Layout differences
-such as pagination, fonts, page chrome or typographic quotes are ignored.
+another toolchain...), `documentation-checker compare` checks that nothing was
+lost or altered: missing sections and paragraphs, changed numbers or negations,
+typos, which the dictionaries tell from corrections, lost accents or ligatures,
+broken encodings. It also reports headings, tables, code and lists that lose
+their kind, headings whose level changed, and links that are lost, broken or
+pointed elsewhere. It compares the images too: missing, added and replaced
+images, degraded images (resolution, sharpness, SSIM, JPEG quality, colors,
+transparency), re-encoded images, rasterized figures and lost alternative
+texts. When five findings or more of one rule make the same change, such as the
+same lost accent or the same missing block, they are reported as a single
+grouped finding; moved, split or merged blocks and missing sections are never
+grouped. Layout differences such as pagination, fonts, page chrome or
+typographic quotes are ignored.
 
-`doc-checker audit` checks a single build, without a reference: broken
-internal links, skipped heading levels, empty sections, unresolved
-references, accessibility problems such as missing alternative texts,
-images of a poor quality, and the text: spelling, typography, repeated
-words and long sentences, in French and in English.
+`documentation-checker audit` checks a single build, without a reference:
+broken internal links, skipped heading levels, empty sections, unresolved
+references, accessibility problems such as missing alternative texts, images of
+a poor quality, and the text: spelling, typography, repeated words and long
+sentences, in French and in English.
 
 The current version compares two builds or audits one. `compare` takes
 either two HTML builds, each a single page or a generated site directory,
@@ -32,26 +32,27 @@ cannot be compared with a PDF. `audit` takes one of them.
 
 ## Installation
 
-doc-checker needs Python 3.14 or later. Install the `doc-checker` command
-from PyPI with [uv](https://docs.astral.sh/uv/), pipx or pip:
+documentation-checker needs Python 3.14 or later. Install the
+`documentation-checker` command from PyPI with
+[uv](https://docs.astral.sh/uv/), pipx or pip:
 
 ```bash
-uv tool install doc-checker
-pipx install doc-checker
-pip install doc-checker
+uv tool install documentation-checker
+pipx install documentation-checker
+pip install documentation-checker
 ```
 
 The optional `pdf-tables` extra reads the ruled tables of PDF documents, as
 described in [PDF tables](#pdf-tables):
 
 ```bash
-uv tool install "doc-checker[pdf-tables]"
+uv tool install "documentation-checker[pdf-tables]"
 ```
 
 The development version installs from the repository:
 
 ```bash
-uv tool install git+https://github.com/cledouarec/doc-checker
+uv tool install git+https://github.com/cledouarec/documentation-checker
 ```
 
 ## Usage
@@ -59,8 +60,8 @@ uv tool install git+https://github.com/cledouarec/doc-checker
 Compare a reference build with its new version:
 
 ```bash
-doc-checker compare docs/_build/html site/ -o doc-checker-report
-doc-checker compare old.pdf new.pdf
+documentation-checker compare docs/_build/html site/ -o documentation-checker-report
+documentation-checker compare old.pdf new.pdf
 ```
 
 The command prints a summary and writes two reports in the output directory:
@@ -80,14 +81,14 @@ Print the normalized blocks of a document, to tune the content selector of an
 HTML build or to understand a finding:
 
 ```bash
-doc-checker extract site/
-doc-checker extract manual.pdf
+documentation-checker extract site/
+documentation-checker extract manual.pdf
 ```
 
 The options of `compare`:
 
-- `-o DIR`, `--output DIR`: directory of the reports, `doc-checker-report`
-  by default.
+- `-o DIR`, `--output DIR`: directory of the reports,
+  `documentation-checker-report` by default.
 - `-c FILE`, `--config FILE`: configuration file, as described in
   [Configuration](#configuration).
 - `--lang auto|fr|en`: language of the documentation, detected by default.
@@ -276,9 +277,9 @@ that the compared text does not depend on the option.
 Audit a single build, an HTML build or a PDF document:
 
 ```bash
-doc-checker audit site/ -o audit-report
-doc-checker audit manual.pdf --profile print
-doc-checker audit site/ --checks structure,a11y --min-severity minor
+documentation-checker audit site/ -o audit-report
+documentation-checker audit manual.pdf --profile print
+documentation-checker audit site/ --checks structure,a11y --min-severity minor
 ```
 
 The command prints a summary and writes the same reports as `compare`,
@@ -363,16 +364,15 @@ annotation is checked: its destination must lead to a page of the
 document, and a link that opens a local file must find it next to the PDF.
 A URI is never checked.
 
-The weight, the JPEG quality and the pixels of an image file are reported
-once, at its first use; a broken image, a low resolution and an upscaled
-image, at each use. A raster image of a PDF is only judged by its
-resolution when it is shown on 36 points or more. An image that is too
-large to be read, an external image and a vector figure of a PDF are never
-reported broken: a browser or a viewer may still show them. Neither is an
-AVIF or JPEG XL image, which browsers show though doc-checker cannot decode
-it. `image.blocky` is not reported for an image that already has an
-`image.jpeg_quality` finding, even when that finding is disabled or
-ignored.
+The weight, the JPEG quality and the pixels of an image file are reported once,
+at its first use; a broken image, a low resolution and an upscaled image, at
+each use. A raster image of a PDF is only judged by its resolution when it is
+shown on 36 points or more. An image that is too large to be read, an external
+image and a vector figure of a PDF are never reported broken: a browser or a
+viewer may still show them. Neither is an AVIF or JPEG XL image, which browsers
+show though documentation-checker cannot decode it. `image.blocky` is not
+reported for an image that already has an `image.jpeg_quality` finding, even
+when that finding is disabled or ignored.
 
 The families and the profile can also be set in the `[general]` section of
 the configuration, and the thresholds in `[thresholds.audit]`. These are
@@ -434,28 +434,27 @@ hyphens. A word with a digit, such as `x86` or `2e`, an acronym, such as
 `API` or `API's`, and a word with a capital inside, such as `GitHub` or
 `camelCase`, are never spelled.
 
-The French dictionary is Grammalecte 7.7 "toutes variantes", which knows
-both spellings of the 1990 reform, such as `événement` and `évènement`. It
-is published under the MPL-2.0 and shipped unchanged with doc-checker;
-`src/doc_checker/spell/data/fr/SOURCE.txt` gives its source and its
+The French dictionary is Grammalecte 7.7 "toutes variantes", which knows both
+spellings of the 1990 reform, such as `événement` and `évènement`. It is
+published under the MPL-2.0 and shipped unchanged with documentation-checker;
+`src/documentation_checker/spell/data/fr/SOURCE.txt` gives its source and its
 checksums. The English dictionary is the en_US dictionary that comes with
-spylls, the port of Hunspell that doc-checker uses, published under the
-MPL-2.0; the dictionary has no licence file of its own, and its affix file
-keeps the LGPL-2.1 notice of its phonetic rules. Both dictionaries come
-with the packages: nothing is downloaded, and no dictionary of the system
-is read. A word that the dictionary of its language does not know
-is known when the dictionary of the other language knows it: technical
-French quotes English words, such as `authentication`, and English quotes
-French ones, such as `café`. In French, a word after an elided word, such
-as `l'upload` or `d'authentication`, is known when the word without its
-elided start is a personal word or an English word. In English, a
-possessive (`user's`), a British spelling (`colour`, `organise`, `centre`,
-`catalogue`, `defence`, `travelled`, `acknowledgement`, `recognisable`)
-and a known word after a common prefix, such as `subcommand` or
-`unbuffered`, are known. In both languages, a word cut by a hyphen at
-the end of a line, such as `connec-tion`, is known when it is known
-without its hyphens, and a hyphenated word when each of its parts is known
-or code, such as `config-based`.
+spylls, the port of Hunspell that documentation-checker uses, published under
+the MPL-2.0; the dictionary has no licence file of its own, and its affix file
+keeps the LGPL-2.1 notice of its phonetic rules. Both dictionaries come with
+the packages: nothing is downloaded, and no dictionary of the system is read. A
+word that the dictionary of its language does not know is known when the
+dictionary of the other language knows it: technical French quotes English
+words, such as `authentication`, and English quotes French ones, such as
+`café`. In French, a word after an elided word, such as `l'upload` or
+`d'authentication`, is known when the word without its elided start is a
+personal word or an English word. In English, a possessive (`user's`), a
+British spelling (`colour`, `organise`, `centre`, `catalogue`, `defence`,
+`travelled`, `acknowledgement`, `recognisable`) and a known word after a common
+prefix, such as `subcommand` or `unbuffered`, are known. In both languages, a
+word cut by a hyphen at the end of a line, such as `connec-tion`, is known when
+it is known without its hyphens, and a hyphenated word when each of its parts
+is known or code, such as `config-based`.
 
 Each block is checked in the language of the text of the document: the
 language of `--lang` or `[general] lang`, else the one that its prose
@@ -553,10 +552,10 @@ it holds the misspellings along with the vocabulary: review it before
 passing it to `--words`. A first audit gives the list:
 
 ```bash
-doc-checker audit site/ --emit-wordlist words.txt
+documentation-checker audit site/ --emit-wordlist words.txt
 # Fix the misspellings in the documentation, remove them from words.txt,
 # keep the vocabulary, then:
-doc-checker audit site/ --words words.txt
+documentation-checker audit site/ --words words.txt
 ```
 
 #### Known limits
@@ -828,8 +827,8 @@ is a configuration error, whatever the documents. In a comparison, it
 applies to both documents.
 
 ```bash
-pip install 'doc-checker[pdf-tables]'
-doc-checker compare old.pdf new.pdf --pdf-tables
+pip install 'documentation-checker[pdf-tables]'
+documentation-checker compare old.pdf new.pdf --pdf-tables
 ```
 
 A table whose cells are all bordered by rules becomes one `table` block: one
@@ -902,14 +901,14 @@ without its tables.
 ### Performance
 
 These figures were measured on a laptop with an Intel Core Ultra 7 265U
-processor (12 cores, 14 threads) and 64 GB of memory, on AC power, with
-Python 3.14: the stages in one process with `tools/benchmark.py`, as
-[CONTRIBUTING.md](CONTRIBUTING.md) describes it, and `compare` as a whole
-with the `doc-checker` command. The PGF manual is the `pgfmanual.pdf` of
-TeX Live, compared with a copy that Ghostscript wrote again. The git
-manual is the HTML of `/usr/share/doc/git`, also read four times over in
-one site, and compared with a copy where one paragraph in ten is removed
-and one in seven has a typo.
+processor (12 cores, 14 threads) and 64 GB of memory, on AC power, with Python
+3.14: the stages in one process with `tools/benchmark.py`, as
+[CONTRIBUTING.md](CONTRIBUTING.md) describes it, and `compare` as a whole with
+the `documentation-checker` command. The PGF manual is the `pgfmanual.pdf` of
+TeX Live, compared with a copy that Ghostscript wrote again. The git manual is
+the HTML of `/usr/share/doc/git`, also read four times over in one site, and
+compared with a copy where one paragraph in ten is removed and one in seven has
+a typo.
 
 | Run | Time | Peak memory |
 |---|---|---|
@@ -953,14 +952,14 @@ were compared in 25 s, and below 10,000 characters two of 4 KB in 7 s.
 
 ### Configuration
 
-Options can also be set in `doc-checker.toml`, or in the
-`[tool.doc-checker]` table of `pyproject.toml`:
+Options can also be set in `documentation-checker.toml`, or in the
+`[tool.documentation-checker]` table of `pyproject.toml`:
 
 ```toml
 [general]
 lang = "en"
 min_severity = "minor"
-output = "doc-checker-report"
+output = "documentation-checker-report"
 formats = ["html", "md"]
 images = true        # extract and compare the images
 
@@ -999,10 +998,10 @@ findings = ["be1135e70f67"]
 
 ## License
 
-doc-checker is released under the Apache License 2.0 (see [LICENSE](LICENSE)).
-The French dictionary bundled in the package, from Grammalecte, is released
-under the Mozilla Public License 2.0. The licences of the dependencies are in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+documentation-checker is released under the Apache License 2.0 (see
+[LICENSE](LICENSE)). The French dictionary bundled in the package, from
+Grammalecte, is released under the Mozilla Public License 2.0. The licences of
+the dependencies are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Contribution
 

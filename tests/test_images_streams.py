@@ -10,7 +10,7 @@ import zlib
 import pytest
 from PIL import Image
 
-from doc_checker.images.streams import (
+from documentation_checker.images.streams import (
     MAX_JPEG_SCANS,
     full_filters,
     inflated_length,

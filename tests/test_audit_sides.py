@@ -6,15 +6,20 @@ from dataclasses import replace
 
 import pytest
 
-from doc_checker.audit.accessibility import accessibility_drafts
-from doc_checker.audit.links import broken_link_drafts
-from doc_checker.audit.sides import LinkMarks, block_side, image_side, quote
-from doc_checker.compare.aggregate import PATTERN_MAX_CHARS
-from doc_checker.config import AuditThresholds
-from doc_checker.images.refs import describe
-from doc_checker.model.document import BlockKind, ImageRef, Link
-from doc_checker.model.facts import HtmlPageFacts
-from doc_checker.text.normalize import ELLIPSIS
+from documentation_checker.audit.accessibility import accessibility_drafts
+from documentation_checker.audit.links import broken_link_drafts
+from documentation_checker.audit.sides import (
+    LinkMarks,
+    block_side,
+    image_side,
+    quote,
+)
+from documentation_checker.compare.aggregate import PATTERN_MAX_CHARS
+from documentation_checker.config import AuditThresholds
+from documentation_checker.images.refs import describe
+from documentation_checker.model.document import BlockKind, ImageRef, Link
+from documentation_checker.model.facts import HtmlPageFacts
+from documentation_checker.text.normalize import ELLIPSIS
 from tests.builders import make_audit_document, make_block, make_image_block
 
 # A link text that nearly matches at every place of its block: one long

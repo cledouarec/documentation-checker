@@ -3,13 +3,13 @@
 
 import pytest
 
-from doc_checker.text.lang import (
+from documentation_checker.text.lang import (
     declared_language,
     detect_language,
     resolve_language,
     strong_language,
 )
-from doc_checker.text.lexicon import (
+from documentation_checker.text.lexicon import (
     DEFAULT_ADMONITION_TITLES,
     is_admonition_title,
     is_modal,

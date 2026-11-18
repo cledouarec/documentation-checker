@@ -6,7 +6,7 @@ from dataclasses import replace
 
 import pytest
 
-from doc_checker.audit.prose import (
+from documentation_checker.audit.prose import (
     ABBREVIATIONS,
     CODE_MARK,
     CODE_SCAN_FACTOR,
@@ -22,8 +22,8 @@ from doc_checker.audit.prose import (
     prose_blocks,
     sentences,
 )
-from doc_checker.model.document import BlockKind
-from doc_checker.text.lang import (
+from documentation_checker.model.document import BlockKind
+from documentation_checker.text.lang import (
     BLOCK_EVIDENCE_MIN,
     LANGUAGE_NAMES,
     block_language,

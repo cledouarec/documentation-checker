@@ -9,16 +9,16 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.extract.html import images as html_images
-from doc_checker.extract.html.images import ImageResolver, RawImage
-from doc_checker.images.pixels import CANNOT_DECODE
-from doc_checker.images.refs import content_digest
+from documentation_checker.extract.html import images as html_images
+from documentation_checker.extract.html.images import ImageResolver, RawImage
+from documentation_checker.images.pixels import CANNOT_DECODE
+from documentation_checker.images.refs import content_digest
 from tests.image_builders import drawing, encode
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.model.document import ImageRef
+    from documentation_checker.model.document import ImageRef
 
 PNG = encode(drawing("source"))
 PNG_DATA = base64.b64encode(PNG).decode()

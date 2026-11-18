@@ -1,5 +1,5 @@
 [project]
-name = "doc-checker"
+name = "documentation-checker"
 version = "0.1.0"
 description = "Compare and audit PDF and HTML documentation"
 authors = [
@@ -10,7 +10,7 @@ license = "Apache-2.0 AND MPL-2.0"
 license-files = [
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
-    "src/doc_checker/spell/data/fr/LICENSE",
+    "src/documentation_checker/spell/data/fr/LICENSE",
 ]
 requires-python = ">=3.14"
 keywords = [
@@ -50,12 +50,12 @@ dependencies = [
 ]
 
 [project.scripts]
-doc-checker = "doc_checker.cli:main"
+documentation-checker = "documentation_checker.cli:main"
 
 [project.urls]
-Repository = "https://github.com/cledouarec/doc-checker"
-Issues = "https://github.com/cledouarec/doc-checker/issues"
-Changelog = "https://github.com/cledouarec/doc-checker/blob/main/CHANGELOG.md"
+Repository = "https://github.com/cledouarec/documentation-checker"
+Issues = "https://github.com/cledouarec/documentation-checker/issues"
+Changelog = "https://github.com/cledouarec/documentation-checker/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 pdf-tables = [
@@ -77,13 +77,13 @@ requires = ["uv_build>=0.11.0,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "doc_checker"
+module-name = "documentation_checker"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "0.1.0"
 version_files = [
-    "src/doc_checker/__init__.py:__version__",
+    "src/documentation_checker/__init__.py:__version__",
     "pyproject.toml:^version",
 ]
 style = [

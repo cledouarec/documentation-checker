@@ -15,10 +15,10 @@ from typing import TYPE_CHECKING, NoReturn, Self
 
 import pytest
 
-from doc_checker.config import Config
-from doc_checker.errors import ConfigError, InputError
-from doc_checker.model.findings import Severity
-from doc_checker.pipeline import (
+from documentation_checker.config import Config
+from documentation_checker.errors import ConfigError, InputError
+from documentation_checker.model.findings import Severity
+from documentation_checker.pipeline import (
     check_wordlist_path,
     input_size,
     load_pair,
@@ -27,7 +27,7 @@ from doc_checker.pipeline import (
     run_compare,
     write_wordlist,
 )
-from doc_checker.report.markdown import render_markdown
+from documentation_checker.report.markdown import render_markdown
 from tests.builders import (
     FIGURES_EN,
     SAMPLE_EN,
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Collection, Mapping
     from pathlib import Path
 
-    from doc_checker.compare.engine import CompareResult
+    from documentation_checker.compare.engine import CompareResult
 
 
 IMAGES_ONLY = Config(checks=("images",))
@@ -54,8 +54,8 @@ import sys
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
-from doc_checker import pipeline
-from doc_checker.config import Config
+from documentation_checker import pipeline
+from documentation_checker.config import Config
 
 
 class KilledPool(ProcessPoolExecutor):
@@ -223,8 +223,11 @@ def _failing(
         pools.append(FailingPool(failures, refused, spoiled or {}))
         return pools[-1]
 
-    monkeypatch.setattr("doc_checker.pipeline.ProcessPoolExecutor", make)
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 0)
+    monkeypatch.setattr(
+        "documentation_checker.pipeline.ProcessPoolExecutor",
+        make,
+    )
+    monkeypatch.setattr("documentation_checker.pipeline.PARALLEL_MIN_BYTES", 0)
     return pools
 
 
@@ -235,7 +238,7 @@ def test_parallel_loading_gives_the_same_report(
     """Two processes give the findings and the report of one."""
     ref, new = _sites(tmp_path)
     serial = run_compare(ref, new, Config(output=tmp_path / "a"))
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 0)
+    monkeypatch.setattr("documentation_checker.pipeline.PARALLEL_MIN_BYTES", 0)
     parallel = run_compare(ref, new, Config(output=tmp_path / "b"))
     assert parallel.findings == serial.findings
     first = render_markdown(serial, tmp_path / "a.md", None).read_bytes()
@@ -252,7 +255,10 @@ def test_small_inputs_are_loaded_in_this_process(
     def refuse(*_: object, **__: object) -> None:
         raise AssertionError
 
-    monkeypatch.setattr("doc_checker.pipeline.ProcessPoolExecutor", refuse)
+    monkeypatch.setattr(
+        "documentation_checker.pipeline.ProcessPoolExecutor",
+        refuse,
+    )
     ref, new = _sites(tmp_path)
     assert run_compare(ref, new, Config()).stats.matched > 0
 
@@ -267,7 +273,7 @@ def test_input_error_of_a_worker_keeps_its_message(
     bad.write_bytes(b"%PDF-1.7\nnot a pdf")
     with pytest.raises(InputError) as serial:
         run_compare(good, bad, Config())
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 0)
+    monkeypatch.setattr("documentation_checker.pipeline.PARALLEL_MIN_BYTES", 0)
     with pytest.raises(InputError) as parallel:
         run_compare(good, bad, Config())
     assert str(parallel.value) == str(serial.value)
@@ -416,7 +422,7 @@ def _real_pools(
     """
     results: list[Path] = []
     monkeypatch.setattr(
-        "doc_checker.pipeline.ProcessPoolExecutor",
+        "documentation_checker.pipeline.ProcessPoolExecutor",
         partial(
             RealPool,
             results=results,
@@ -424,7 +430,7 @@ def _real_pools(
             unwritable=unwritable,
         ),
     )
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 0)
+    monkeypatch.setattr("documentation_checker.pipeline.PARALLEL_MIN_BYTES", 0)
     return results
 
 
@@ -533,7 +539,10 @@ def test_documents_are_the_same_in_two_processes(
 ) -> None:
     """The documents read in two processes equal those read here."""
     pair = build(tmp_path)
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 10**18)
+    monkeypatch.setattr(
+        "documentation_checker.pipeline.PARALLEL_MIN_BYTES",
+        10**18,
+    )
     here = load_pair(*pair, Config())
     results = _real_pools(monkeypatch)
     apart = load_pair(*pair, Config())
@@ -562,8 +571,11 @@ def test_pools_that_cannot_start_read_here(
 
     sites = _sites(tmp_path)
     here = load_pair(*sites, Config())
-    monkeypatch.setattr("doc_checker.pipeline.ProcessPoolExecutor", refuse)
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 0)
+    monkeypatch.setattr(
+        "documentation_checker.pipeline.ProcessPoolExecutor",
+        refuse,
+    )
+    monkeypatch.setattr("documentation_checker.pipeline.PARALLEL_MIN_BYTES", 0)
     assert load_pair(*sites, Config()) == here
 
 

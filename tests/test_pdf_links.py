@@ -9,17 +9,17 @@ from typing import TYPE_CHECKING
 import pypdfium2.raw as pdfium_c
 import pytest
 
-from doc_checker.config import PdfConfig
-from doc_checker.extract.pdf import loader, reader
-from doc_checker.extract.pdf.loader import load_pdf
-from doc_checker.extract.pdf.reader import (
+from documentation_checker.config import PdfConfig
+from documentation_checker.extract.pdf import loader, reader
+from documentation_checker.extract.pdf.loader import load_pdf
+from documentation_checker.extract.pdf.reader import (
     file_link_target,
     open_pdf,
     pdf_file_path,
     read_page,
 )
-from doc_checker.model.facts import OutlineEntry
-from doc_checker.text.normalize import ELLIPSIS
+from documentation_checker.model.facts import OutlineEntry
+from documentation_checker.text.normalize import ELLIPSIS
 from tests.builders import SAMPLE_EN
 from tests.pdf_builders import (
     build_linked_pdf,

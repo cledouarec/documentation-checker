@@ -19,13 +19,13 @@ import pytest
 from pdfplumber.table import TableFinder, TableSettings
 from reportlab.lib.units import mm
 
-from doc_checker.config import Config, PdfConfig
-from doc_checker.errors import ConfigError
-from doc_checker.extract import load_document
-from doc_checker.extract.pdf.figures import MAX_PAGE_PATHS
-from doc_checker.extract.pdf.reader import open_pdf, read_page
-from doc_checker.extract.pdf.table_process import read_tables
-from doc_checker.extract.pdf.tables import (
+from documentation_checker.config import Config, PdfConfig
+from documentation_checker.errors import ConfigError
+from documentation_checker.extract import load_document
+from documentation_checker.extract.pdf.figures import MAX_PAGE_PATHS
+from documentation_checker.extract.pdf.reader import open_pdf, read_page
+from documentation_checker.extract.pdf.table_process import read_tables
+from documentation_checker.extract.pdf.tables import (
     PdfTable,
     TablePage,
     continues,
@@ -33,8 +33,8 @@ from doc_checker.extract.pdf.tables import (
     require_pdfplumber,
     rule_crossings,
 )
-from doc_checker.model.document import BlockKind
-from doc_checker.pipeline import run_compare
+from documentation_checker.model.document import BlockKind
+from documentation_checker.pipeline import run_compare
 from tests.builders import FIGURES_EN
 from tests.pdf_builders import (
     SETTING_ROWS,
@@ -75,8 +75,8 @@ from tests.pdf_builders import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-    from doc_checker.extract.pdf.tables import TableReading
-    from doc_checker.model.document import Document
+    from documentation_checker.extract.pdf.tables import TableReading
+    from documentation_checker.model.document import Document
 
 TABLES = Config(pdf=PdfConfig(tables=True))
 A4 = (595.2756, 841.8898)
@@ -86,8 +86,8 @@ RAW = TablePage(0, 595, 842, (), 0)  # The page of a PDF of raw objects.
 # without the count, pdfminer reads each of these pages in 5 s or more.
 QUICK_SECONDS = 1.0
 STOPPED = "tables not read: the table reader went over its limits or stopped"
-MODULE = "doc_checker.extract.pdf.tables"
-PROCESS = "doc_checker.extract.pdf.table_process"
+MODULE = "documentation_checker.extract.pdf.tables"
+PROCESS = "documentation_checker.extract.pdf.table_process"
 # An introduction that a table goes on, without a full stop.
 SUCH_AS = (
     "The settings of the service are listed below with their default values,"
@@ -152,12 +152,14 @@ def test_reading_processes_without_the_extra_fail_the_same(
     def here(*_: object, **__: object) -> None:
         raise AssertionError
 
-    monkeypatch.setattr("doc_checker.pipeline.load_document", here)
-    monkeypatch.setattr("doc_checker.pipeline.PARALLEL_MIN_BYTES", 0)
+    monkeypatch.setattr("documentation_checker.pipeline.load_document", here)
+    monkeypatch.setattr("documentation_checker.pipeline.PARALLEL_MIN_BYTES", 0)
     with pytest.raises(ConfigError) as parallel:
         run_compare(pdf, pdf, TABLES)
     assert str(parallel.value) == str(serial.value)
-    assert "pip install 'doc-checker[pdf-tables]'" in str(serial.value)
+    assert "pip install 'documentation-checker[pdf-tables]'" in str(
+        serial.value,
+    )
 
 
 def test_base_install_never_imports_pdfplumber(
@@ -176,7 +178,7 @@ def test_the_base_commands_never_import_pdfplumber(tmp_path: Path) -> None:
     pdf = build_table_pdf(tmp_path / "t.pdf", margin=25 * mm, grid=True)
     code = (
         "import sys; from click.testing import CliRunner;"
-        " from doc_checker.cli import main;"
+        " from documentation_checker.cli import main;"
         " pdf, out = sys.argv[1], sys.argv[2];"
         " codes = [CliRunner().invoke(main, args).exit_code for args in"
         " (['extract', pdf], ['audit', pdf, '-o', out])];"
@@ -341,7 +343,8 @@ def test_reading_the_tables_says_nothing(tmp_path: Path) -> None:
     pdf = build_unmapped_table_pdf(tmp_path / "u.pdf")
     code = (
         "import sys; from pathlib import Path;"
-        " from doc_checker.extract.pdf.tables import TablePage, find_tables;"
+        " from documentation_checker.extract.pdf.tables"
+        " import TablePage, find_tables;"
         " page = TablePage(0, 595, 842, (), 0);"
         " print(find_tables(Path(sys.argv[1]), [page], page_count=1))"
     )
@@ -383,7 +386,10 @@ def test_pages_beyond_a_budget_are_counted(
     reason: str,
 ) -> None:
     """A page beyond a budget of the search is counted, not searched."""
-    monkeypatch.setattr(f"doc_checker.extract.pdf.tables.{limit}", 10)
+    monkeypatch.setattr(
+        f"documentation_checker.extract.pdf.tables.{limit}",
+        10,
+    )
     pdf = build_table_pdf(tmp_path / "t.pdf", margin=25 * mm, grid=True)
     pages = _pages(pdf)
     assert _find(pdf) == ({}, [], {reason: len(pages)})
@@ -625,7 +631,10 @@ def _signalled_reading(pdf: Path) -> tuple[TableReading, tuple[str, str]]:
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline and not limits:
             for child in multiprocessing.active_children():
-                if child.name != "doc-checker tables" or child.pid is None:
+                if (
+                    child.name != "documentation-checker tables"
+                    or child.pid is None
+                ):
                     continue
                 with contextlib.suppress(OSError):
                     found = _processor_limits(child.pid)
@@ -1026,7 +1035,7 @@ def test_dense_pages_are_not_searched(
 ) -> None:
     """A page of more characters than the limit is read as text."""
     monkeypatch.setattr(
-        "doc_checker.extract.pdf.tables.MAX_TABLE_PAGE_CHARS",
+        "documentation_checker.extract.pdf.tables.MAX_TABLE_PAGE_CHARS",
         10,
     )
     pdf = build_table_pdf(tmp_path / "t.pdf", margin=25 * mm, grid=True)

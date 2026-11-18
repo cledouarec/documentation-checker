@@ -7,24 +7,24 @@ from typing import TYPE_CHECKING, NoReturn
 
 import pytest
 
-from doc_checker.compare import engine as engine_module
-from doc_checker.compare.engine import (
+from documentation_checker.compare import engine as engine_module
+from documentation_checker.compare.engine import (
     CompareResult,
     CompareStats,
     compare_documents,
 )
-from doc_checker.config import (
+from documentation_checker.config import (
     Config,
     IgnoreConfig,
     PdfConfig,
     SpellingConfig,
 )
-from doc_checker.errors import InputError
-from doc_checker.model.document import Block, BlockKind
-from doc_checker.model.findings import DiffSegment, Severity
-from doc_checker.pipeline import run_compare
-from doc_checker.spell import speller as speller_module
-from doc_checker.spell.speller import Speller
+from documentation_checker.errors import InputError
+from documentation_checker.model.document import Block, BlockKind
+from documentation_checker.model.findings import DiffSegment, Severity
+from documentation_checker.pipeline import run_compare
+from documentation_checker.spell import speller as speller_module
+from documentation_checker.spell.speller import Speller
 from tests.builders import (
     PARAGRAPHS,
     SAMPLE_EN,
@@ -465,8 +465,14 @@ def test_cut_alignment_is_a_warning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """An alignment cut by its budget is told in the warnings."""
-    monkeypatch.setattr("doc_checker.compare.align.ALIGN_WORK_BASE", 10)
-    monkeypatch.setattr("doc_checker.compare.align.ALIGN_WORK_PER_CHAR", 0)
+    monkeypatch.setattr(
+        "documentation_checker.compare.align.ALIGN_WORK_BASE",
+        10,
+    )
+    monkeypatch.setattr(
+        "documentation_checker.compare.align.ALIGN_WORK_PER_CHAR",
+        0,
+    )
     ref = make_document(*random_blocks(1, 20))
     new = make_document(*random_blocks(2, 20))
     result = compare_documents(ref, new, Config())

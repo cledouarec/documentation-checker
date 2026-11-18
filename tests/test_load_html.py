@@ -10,14 +10,14 @@ from typing import TYPE_CHECKING
 import pytest
 from PIL import Image
 
-from doc_checker.config import Config, HtmlConfig
-from doc_checker.errors import ConfigError, InputError
-from doc_checker.extract import detect_format, load_document
-from doc_checker.extract.html import images as html_images
-from doc_checker.extract.html import load_html, profiles
-from doc_checker.extract.html.links import LinkResolver
-from doc_checker.images.refs import content_digest
-from doc_checker.model.document import NUMBER_ATTR, BlockKind
+from documentation_checker.config import Config, HtmlConfig
+from documentation_checker.errors import ConfigError, InputError
+from documentation_checker.extract import detect_format, load_document
+from documentation_checker.extract.html import images as html_images
+from documentation_checker.extract.html import load_html, profiles
+from documentation_checker.extract.html.links import LinkResolver
+from documentation_checker.images.refs import content_digest
+from documentation_checker.model.document import NUMBER_ATTR, BlockKind
 from tests.builders import (
     FIGURES_EN,
     SAMPLE_EN,
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
     from pathlib import Path
 
-    from doc_checker.model.document import Document, ImageRef, Link
+    from documentation_checker.model.document import Document, ImageRef, Link
     from tests.builders import DocSpec
 
 BANNER = "Docs for version 2.0."

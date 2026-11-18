@@ -3,8 +3,8 @@
 
 import pytest
 
-from doc_checker.text.numbers import canonical_number
-from doc_checker.text.tokenize import TokenKind, tokenize
+from documentation_checker.text.numbers import canonical_number
+from documentation_checker.text.tokenize import TokenKind, tokenize
 
 
 def _texts(text: str) -> list[str]:

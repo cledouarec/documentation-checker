@@ -4,14 +4,18 @@
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from doc_checker.audit.engine import TEXT, AuditStats, audit_document
-from doc_checker.compare.drafts import EXCERPT_MAX_CHARS, marked_side
-from doc_checker.config import Config, IgnoreConfig, SpellingConfig
-from doc_checker.images.refs import raster_ref
-from doc_checker.model.document import BlockKind, Link, SourceRef
-from doc_checker.model.facts import HtmlPageFacts, PdfLink, PdfPageFacts
-from doc_checker.model.findings import Severity
-from doc_checker.text.normalize import ELLIPSIS
+from documentation_checker.audit.engine import TEXT, AuditStats, audit_document
+from documentation_checker.compare.drafts import EXCERPT_MAX_CHARS, marked_side
+from documentation_checker.config import Config, IgnoreConfig, SpellingConfig
+from documentation_checker.images.refs import raster_ref
+from documentation_checker.model.document import BlockKind, Link, SourceRef
+from documentation_checker.model.facts import (
+    HtmlPageFacts,
+    PdfLink,
+    PdfPageFacts,
+)
+from documentation_checker.model.findings import Severity
+from documentation_checker.text.normalize import ELLIPSIS
 from tests.builders import (
     make_audit_document,
     make_block,
@@ -21,7 +25,7 @@ from tests.builders import (
 from tests.image_builders import drawing, encode
 
 if TYPE_CHECKING:
-    from doc_checker.model.document import Document
+    from documentation_checker.model.document import Document
 
 STRUCTURE_ONLY = Config(checks=("structure",))
 HOME = (HtmlPageFacts("index.html", "en", "Home"),)

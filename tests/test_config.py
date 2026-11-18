@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.config import (
+from documentation_checker.config import (
     CliOverrides,
     Config,
     PdfConfig,
@@ -16,9 +16,9 @@ from doc_checker.config import (
     load_config,
     rule_disabled,
 )
-from doc_checker.errors import ConfigError
-from doc_checker.model.findings import Category, Severity
-from doc_checker.rules import get_rule
+from documentation_checker.errors import ConfigError
+from documentation_checker.model.findings import Category, Severity
+from documentation_checker.rules import get_rule
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -30,14 +30,14 @@ def test_defaults_without_files(tmp_path: Path) -> None:
     assert cfg.lang == "auto"
     assert cfg.formats == ("html", "md")
     assert cfg.min_severity is Severity.INFO
-    assert cfg.output == tmp_path / "doc-checker-report"
+    assert cfg.output == tmp_path / "documentation-checker-report"
     assert (cfg.compare.match, cfg.compare.moved_match) == (0.6, 0.8)
     assert "**/_static/**" in cfg.html.exclude
 
 
 def test_formats_may_be_html_only(tmp_path: Path) -> None:
     """The HTML report alone may be asked for."""
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         '[general]\nformats = ["html"]\n',
         encoding="utf-8",
     )
@@ -45,8 +45,8 @@ def test_formats_may_be_html_only(tmp_path: Path) -> None:
 
 
 def test_project_file_is_loaded(tmp_path: Path) -> None:
-    """A doc-checker.toml file in the working directory is used."""
-    (tmp_path / "doc-checker.toml").write_text(
+    """A documentation-checker.toml file in the working directory is used."""
+    (tmp_path / "documentation-checker.toml").write_text(
         '[general]\nlang = "fr"\n[html]\nexclude = ["drafts/**"]\n'
         '[severity]\n"block.added" = "info"\n',
         encoding="utf-8",
@@ -58,9 +58,9 @@ def test_project_file_is_loaded(tmp_path: Path) -> None:
 
 
 def test_pyproject_section_is_used(tmp_path: Path) -> None:
-    """The [tool.doc-checker] table of pyproject.toml is used."""
+    """The [tool.documentation-checker] table of pyproject.toml is used."""
     (tmp_path / "pyproject.toml").write_text(
-        '[tool.doc-checker.general]\nmin_severity = "major"\n',
+        '[tool.documentation-checker.general]\nmin_severity = "major"\n',
         encoding="utf-8",
     )
     assert load_config(None, cwd=tmp_path).min_severity is Severity.MAJOR
@@ -68,7 +68,7 @@ def test_pyproject_section_is_used(tmp_path: Path) -> None:
 
 def test_explicit_config_wins(tmp_path: Path) -> None:
     """An explicit configuration file wins over the project file."""
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         '[general]\nlang = "fr"\n',
         encoding="utf-8",
     )
@@ -97,7 +97,7 @@ def test_pdf_defaults(tmp_path: Path) -> None:
 
 def test_pdf_defaults_when_section_is_absent(tmp_path: Path) -> None:
     """A configuration file without a [pdf] section keeps the defaults."""
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         '[general]\nlang = "fr"\n',
         encoding="utf-8",
     )
@@ -106,7 +106,7 @@ def test_pdf_defaults_when_section_is_absent(tmp_path: Path) -> None:
 
 def test_pdf_section_is_loaded(tmp_path: Path) -> None:
     """The keys of the [pdf] section replace the PDF defaults."""
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         "[pdf]\nheader_band = 0.1\nfooter_band = 0.05\nrepeat_share = 0.5\n"
         "compare_toc = true\n",
         encoding="utf-8",
@@ -135,7 +135,7 @@ def test_pdf_tables_key(tmp_path: Path) -> None:
 
 def test_pdf_ranges_include_their_upper_bound(tmp_path: Path) -> None:
     """A band can cover half of the page and a share all of the pages."""
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         "[pdf]\nheader_band = 0.5\nfooter_band = 0.5\nrepeat_share = 1\n",
         encoding="utf-8",
     )
@@ -244,7 +244,7 @@ def test_images_can_be_turned_off(tmp_path: Path) -> None:
     assert load_config(None, cwd=tmp_path).images is True
     off = apply_overrides(Config(), CliOverrides(no_images=True))
     assert off.images is False
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         "[general]\nimages = false\n",
         encoding="utf-8",
     )
@@ -320,7 +320,7 @@ def test_audit_settings_have_the_defaults_of_the_spec() -> None:
 
 def test_audit_settings_are_read_from_the_file(tmp_path: Path) -> None:
     """The families, the profile and the thresholds come from the file."""
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         '[general]\nchecks = ["a11y", "images", "a11y"]\n'
         'profile = "print"\n'
         "[thresholds.audit]\ndpi_minor = 200\nheavy_minor = 500000\n"
@@ -394,7 +394,10 @@ def test_bad_audit_settings_are_config_errors(
     message: str,
 ) -> None:
     """Each wrong audit setting is an error that names its key."""
-    (tmp_path / "doc-checker.toml").write_text(toml, encoding="utf-8")
+    (tmp_path / "documentation-checker.toml").write_text(
+        toml,
+        encoding="utf-8",
+    )
     with pytest.raises(ConfigError, match=re.escape(message)):
         load_config(None, cwd=tmp_path)
 
@@ -473,7 +476,10 @@ def test_audit_thresholds_reject_degenerate_values(
     message: str,
 ) -> None:
     """Non-finite, null, mistyped and tied thresholds are errors."""
-    (tmp_path / "doc-checker.toml").write_text(toml, encoding="utf-8")
+    (tmp_path / "documentation-checker.toml").write_text(
+        toml,
+        encoding="utf-8",
+    )
     with pytest.raises(ConfigError, match=re.escape(message)):
         load_config(None, cwd=tmp_path)
 
@@ -483,7 +489,7 @@ def test_spelling_words_come_from_the_file_and_its_word_files(
 ) -> None:
     """Words of the table, then of each listed file, relative to it."""
     (tmp_path / "jargon.txt").write_text("kubectl\n", encoding="utf-8")
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         '[spelling]\nwords = ["Kubernetes"]\nfiles = ["jargon.txt"]\n'
         "[thresholds.audit]\nlong_sentence_minor = 30\n",
         encoding="utf-8",
@@ -510,7 +516,7 @@ def test_word_files_resolve_against_the_config_folder(
     folder = tmp_path / "conf"
     folder.mkdir()
     (folder / "words.txt").write_text("kubectl\n", encoding="utf-8")
-    config = folder / "doc-checker.toml"
+    config = folder / "documentation-checker.toml"
     config.write_text('[spelling]\nfiles = ["words.txt"]\n', encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     cfg = load_config(config, cwd=tmp_path)
@@ -523,7 +529,7 @@ def test_word_files_may_have_an_absolute_path(tmp_path: Path) -> None:
     words.write_text("kubectl\n", encoding="utf-8")
     other = tmp_path / "other"
     other.mkdir()
-    config = other / "doc-checker.toml"
+    config = other / "documentation-checker.toml"
     config.write_text(
         f"[spelling]\nfiles = ['{words}']\n",
         encoding="utf-8",
@@ -546,7 +552,7 @@ def test_bad_word_files_are_config_errors(
 ) -> None:
     """A word file that is not UTF-8 or has a blank in a word is refused."""
     (tmp_path / "words.txt").write_bytes(content)
-    (tmp_path / "doc-checker.toml").write_text(
+    (tmp_path / "documentation-checker.toml").write_text(
         '[spelling]\nfiles = ["words.txt"]\n',
         encoding="utf-8",
     )

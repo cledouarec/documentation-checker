@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.audit.structure import structure_drafts
-from doc_checker.config import Config
-from doc_checker.extract.loader import load_document
-from doc_checker.images.refs import raster_ref
-from doc_checker.model.document import BlockKind, SourceRef
-from doc_checker.model.facts import (
+from documentation_checker.audit.structure import structure_drafts
+from documentation_checker.config import Config
+from documentation_checker.extract.loader import load_document
+from documentation_checker.images.refs import raster_ref
+from documentation_checker.model.document import BlockKind, SourceRef
+from documentation_checker.model.facts import (
     HtmlPageFacts,
     OutlineEntry,
     Spot,
@@ -37,8 +37,8 @@ from tests.pdf_builders import build_reportlab_pdf
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.compare.drafts import Draft
-    from doc_checker.model.document import Block, Document
+    from documentation_checker.compare.drafts import Draft
+    from documentation_checker.model.document import Block, Document
 
 PDF = "doc.pdf"
 ARROW = "\U00002192"

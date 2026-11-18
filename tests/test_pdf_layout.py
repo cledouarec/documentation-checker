@@ -6,13 +6,18 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.extract.pdf.layout import Line, leaf_lines, page_lines, xy_cut
+from documentation_checker.extract.pdf.layout import (
+    Line,
+    leaf_lines,
+    page_lines,
+    xy_cut,
+)
 from tests.pdf_builders import make_segment
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from doc_checker.extract.pdf.segments import Segment
+    from documentation_checker.extract.pdf.segments import Segment
 
 BODY = 10.0
 # How the page made by `_grid` reads, with a cut between columns and without.

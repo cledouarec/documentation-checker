@@ -22,18 +22,18 @@ from pypdf import (
 from pypdf.errors import DependencyError, PdfReadError
 from pypdf.generic import DictionaryObject
 
-from doc_checker.config import PdfConfig
-from doc_checker.extract.pdf import tags
-from doc_checker.extract.pdf.loader import load_pdf
-from doc_checker.extract.pdf.tags import (
+from documentation_checker.config import PdfConfig
+from documentation_checker.extract.pdf import tags
+from documentation_checker.extract.pdf.loader import load_pdf
+from documentation_checker.extract.pdf.tags import (
     MAX_ROLE_STEPS,
     MAX_TAG_DEPTH,
     MAX_TAG_ITEMS,
     TAG_TEXT_LIMIT,
     read_tags,
 )
-from doc_checker.model.facts import TagTree
-from doc_checker.text.normalize import ELLIPSIS
+from documentation_checker.model.facts import TagTree
+from documentation_checker.text.normalize import ELLIPSIS
 from tests.builders import SAMPLE_FR
 from tests.pdf_builders import build_fpdf2_pdf, build_tagged_pdf
 
@@ -1001,8 +1001,9 @@ def test_heading_numbers_start_at_one_without_leading_zeros(
 def test_loading_a_pdf_does_not_import_pypdf() -> None:
     """Only the audit needs pypdf: the loaders of compare do not import it."""
     code = (
-        "import sys, doc_checker.extract.loader,"
-        " doc_checker.extract.pdf.loader; print('pypdf' in sys.modules)"
+        "import sys, documentation_checker.extract.loader,"
+        " documentation_checker.extract.pdf.loader;"
+        " print('pypdf' in sys.modules)"
     )
     result = subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] - a fixed command of this interpreter
         [sys.executable, "-c", code],

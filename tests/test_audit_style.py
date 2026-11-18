@@ -3,14 +3,14 @@
 
 import time
 
-from doc_checker.audit.prose import Prose, excluded_spans
-from doc_checker.audit.style import (
+from documentation_checker.audit.prose import Prose, excluded_spans
+from documentation_checker.audit.style import (
     foreign_block,
     long_sentences,
     repeated_words,
 )
-from doc_checker.model.document import BlockKind
-from doc_checker.model.findings import Severity
+from documentation_checker.model.document import BlockKind
+from documentation_checker.model.findings import Severity
 from tests.builders import make_block, sentence
 
 KNOWN = {"le", "the", "vous", "that", "is", "windows", "as"}.__contains__

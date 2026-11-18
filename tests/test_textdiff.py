@@ -3,11 +3,11 @@
 
 import pytest
 
-from doc_checker.compare.classify import HunkContext, classify_hunk
-from doc_checker.compare.textdiff import Hunk, diff_tokens
-from doc_checker.text.tokenize import Token, tokenize
+from documentation_checker.compare.classify import HunkContext, classify_hunk
+from documentation_checker.compare.textdiff import Hunk, diff_tokens
+from documentation_checker.text.tokenize import Token, tokenize
 
-MODULE = "doc_checker.compare.textdiff"
+MODULE = "documentation_checker.compare.textdiff"
 
 
 def _lined(*lines: str) -> tuple[str, list[Token], list[int]]:

@@ -2,4 +2,4 @@
 
 # The dictionaries are data shipped as published: never convert their line
 # endings, so that a checkout on Windows keeps their checksums.
-src/doc_checker/spell/data/** -text
+src/documentation_checker/spell/data/** -text

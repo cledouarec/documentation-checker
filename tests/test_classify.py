@@ -3,17 +3,17 @@
 
 import pytest
 
-from doc_checker.compare.classify import (
+from documentation_checker.compare.classify import (
     RUN_SCAN_MAX,
     HunkContext,
     classify_hunk,
     has_encoding_damage,
 )
-from doc_checker.compare.textdiff import diff_tokens
-from doc_checker.model.findings import Severity
-from doc_checker.spell import speller as speller_module
-from doc_checker.spell.speller import Speller
-from doc_checker.text.tokenize import TokenKind, tokenize
+from documentation_checker.compare.textdiff import diff_tokens
+from documentation_checker.model.findings import Severity
+from documentation_checker.spell import speller as speller_module
+from documentation_checker.spell.speller import Speller
+from documentation_checker.text.tokenize import TokenKind, tokenize
 
 LOAD_DICTIONARY = speller_module.load_dictionary
 EM_DASH = "\U00002014"

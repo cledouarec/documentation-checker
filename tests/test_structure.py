@@ -5,17 +5,21 @@ from dataclasses import replace
 
 import pytest
 
-from doc_checker.compare.align import Pair, PairKind, align
-from doc_checker.compare.drafts import ARROW
-from doc_checker.compare.engine import compare_documents
-from doc_checker.compare.structure import (
+from documentation_checker.compare.align import Pair, PairKind, align
+from documentation_checker.compare.drafts import ARROW
+from documentation_checker.compare.engine import compare_documents
+from documentation_checker.compare.structure import (
     expected_levels,
     kind_drafts,
     level_drafts,
 )
-from doc_checker.config import Config
-from doc_checker.model.document import HEADING_SOURCE, Block, BlockKind
-from doc_checker.model.findings import Finding, Severity
+from documentation_checker.config import Config
+from documentation_checker.model.document import (
+    HEADING_SOURCE,
+    Block,
+    BlockKind,
+)
+from documentation_checker.model.findings import Finding, Severity
 from tests.builders import PARAGRAPHS, make_block, make_document
 
 MA, MI, IN = Severity.MAJOR, Severity.MINOR, Severity.INFO

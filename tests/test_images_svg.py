@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 import lxml.html
 import pytest
 
-from doc_checker.extract.html.site import parse_page
-from doc_checker.images.pixels import UnreadableImage
-from doc_checker.images.svg import (
+from documentation_checker.extract.html.site import parse_page
+from documentation_checker.images.pixels import UnreadableImage
+from documentation_checker.images.svg import (
     SVG_MAX_BYTES,
     is_icon,
     parse_svg,
@@ -20,7 +20,7 @@ from doc_checker.images.svg import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.images.svg import SvgIdentity
+    from documentation_checker.images.svg import SvgIdentity
 
 SVG = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">'
@@ -192,7 +192,7 @@ def test_cdata_is_kept_where_the_parser_drops_it(
 ) -> None:
     """A parser that drops CDATA sections reads them as comments."""
     monkeypatch.setattr(
-        "doc_checker.extract.html.site.drops_cdata",
+        "documentation_checker.extract.html.site.drops_cdata",
         lambda: True,
     )
     inline = _inline(tmp_path, GREATER_SVG)

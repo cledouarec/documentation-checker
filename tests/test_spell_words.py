@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.errors import ConfigError
-from doc_checker.spell import words as words_module
-from doc_checker.spell.words import (
+from documentation_checker.errors import ConfigError
+from documentation_checker.spell import words as words_module
+from documentation_checker.spell.words import (
     BLANKS,
     CHUNK,
     CODE_CHUNK,

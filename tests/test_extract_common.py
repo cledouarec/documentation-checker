@@ -8,7 +8,7 @@ from types import MappingProxyType
 
 import pytest
 
-from doc_checker.extract.common import (
+from documentation_checker.extract.common import (
     NUMBERED_MIN,
     NUMBERED_SHARE,
     assign_section_paths,
@@ -18,8 +18,8 @@ from doc_checker.extract.common import (
     strip_caption_numbers,
     strip_heading_numbers,
 )
-from doc_checker.images.refs import unreadable_ref
-from doc_checker.model.document import (
+from documentation_checker.images.refs import unreadable_ref
+from documentation_checker.model.document import (
     NUMBER_ATTR,
     Block,
     BlockKind,

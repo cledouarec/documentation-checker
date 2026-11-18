@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.config import PdfConfig
-from doc_checker.extract.pdf.chrome import (
+from documentation_checker.config import PdfConfig
+from documentation_checker.extract.pdf.chrome import (
     CHROME_MAX_SIZE,
     HEADING_MIN_SIZE,
     band_of,
@@ -17,13 +17,13 @@ from doc_checker.extract.pdf.chrome import (
     title_key,
     title_pages,
 )
-from doc_checker.extract.pdf.reader import Bookmark
+from documentation_checker.extract.pdf.reader import Bookmark
 from tests.pdf_builders import make_segment
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
-    from doc_checker.extract.pdf.segments import Segment
+    from documentation_checker.extract.pdf.segments import Segment
 
 CFG = PdfConfig()
 HEIGHT = 842.0

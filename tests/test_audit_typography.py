@@ -5,17 +5,17 @@ import time
 
 import pytest
 
-from doc_checker.audit.prose import Mark, excluded_spans
-from doc_checker.audit.typography import (
+from documentation_checker.audit.prose import Mark, excluded_spans
+from documentation_checker.audit.typography import (
     FRENCH_UNITS,
     NON_BREAKING,
     UNITS,
     code_tokens,
     typography_marks,
 )
-from doc_checker.compare.aggregate import PATTERN_MAX_CHARS
-from doc_checker.compare.drafts import ARROW
-from doc_checker.text.normalize import ELLIPSIS
+from documentation_checker.compare.aggregate import PATTERN_MAX_CHARS
+from documentation_checker.compare.drafts import ARROW
+from documentation_checker.text.normalize import ELLIPSIS
 from tests.builders import make_block
 
 # Long runs of one shape: each pattern must read them in linear time.

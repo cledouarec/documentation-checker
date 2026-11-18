@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.model.document import (
+from documentation_checker.model.document import (
     BlockKind,
     Document,
     ImageRef,
@@ -15,15 +15,15 @@ from doc_checker.model.document import (
     SourceRef,
     carry_anchors,
 )
-from doc_checker.model.findings import (
+from documentation_checker.model.findings import (
     Category,
     DiffSegment,
     Severity,
     Side,
     finding_id,
 )
-from doc_checker.report.context import CATEGORY_TITLES
-from doc_checker.rules import RULES, get_rule
+from documentation_checker.report.context import CATEGORY_TITLES
+from documentation_checker.rules import RULES, get_rule
 from tests.builders import make_block, make_document
 
 if TYPE_CHECKING:

@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 import pytest
 from reportlab.lib.units import mm
 
-from doc_checker.config import Config, PdfConfig
-from doc_checker.model.document import BlockKind
-from doc_checker.model.findings import Category, Severity
-from doc_checker.pipeline import run_compare
+from documentation_checker.config import Config, PdfConfig
+from documentation_checker.model.document import BlockKind
+from documentation_checker.model.findings import Category, Severity
+from documentation_checker.pipeline import run_compare
 from tests.builders import (
     FIGURES_EN,
     SAMPLE_EN,
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from doc_checker.compare.engine import CompareResult
+    from documentation_checker.compare.engine import CompareResult
 
 C, MI = Severity.CRITICAL, Severity.MINOR
 TABLES = Config(pdf=PdfConfig(tables=True))

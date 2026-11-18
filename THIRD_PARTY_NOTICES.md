@@ -1,12 +1,12 @@
 # Third-party notices
 
-The code of doc-checker is licensed under the Apache License 2.0 (see
+The code of documentation-checker is licensed under the Apache License 2.0 (see
 `LICENSE`). The wheel and the source distribution also carry data under the
-Mozilla Public License 2.0, listed under "Bundled data". The libraries doc-checker
-depends on are installed from PyPI next to it and are not redistributed in the
-package; they are listed here with the licence each one declares in the
-metadata of the version locked in `uv.lock`, and each licence text ships in
-that library's own `dist-info` folder.
+Mozilla Public License 2.0, listed under "Bundled data". The libraries
+documentation-checker depends on are installed from PyPI next to it and are not
+redistributed in the package; they are listed here with the licence each one
+declares in the metadata of the version locked in `uv.lock`, and each licence
+text ships in that library's own `dist-info` folder.
 
 ## Bundled data
 
@@ -14,15 +14,15 @@ that library's own `dist-info` folder.
 |---|---|---|
 | Grammalecte 7.7, French Hunspell dictionaries, "toutes variantes" (`fr-toutesvariantes.aff`, `fr-toutesvariantes.dic`, `README_dict_fr.txt`) | MPL-2.0 | <https://grammalecte.net/dic/hunspell-french-dictionaries-v7.7.zip> |
 
-The files are in `src/doc_checker/spell/data/fr/` exactly as published
-(unchanged, their SHA-256 sums are in
-`src/doc_checker/spell/data/fr/SOURCE.txt`). The licence text is
-`src/doc_checker/spell/data/fr/LICENSE`. The Source Code Form of the
+The files are in `src/documentation_checker/spell/data/fr/` exactly as
+published (unchanged, their SHA-256 sums are in
+`src/documentation_checker/spell/data/fr/SOURCE.txt`). The licence text is
+`src/documentation_checker/spell/data/fr/LICENSE`. The Source Code Form of the
 dictionary is available from the archive above.
 
 ## Runtime dependencies
 
-Installed with `pip install doc-checker`.
+Installed with `pip install documentation-checker`.
 
 | Name | Licence (SPDX) | Project |
 |---|---|---|
@@ -40,8 +40,8 @@ Installed with `pip install doc-checker`.
 
 ## pdf-tables extra
 
-Installed with `pip install "doc-checker[pdf-tables]"`, on top of the runtime
-dependencies.
+Installed with `pip install "documentation-checker[pdf-tables]"`, on top of the
+runtime dependencies.
 
 | Name | Licence (SPDX) | Project |
 |---|---|---|
@@ -59,12 +59,12 @@ dependencies.
   one recorded here.
 - The English dictionary that spylls bundles (`en_US`, from SCOWL/Hunspell)
   comes without a licence file. Its `.aff` file keeps the GNU LGPL-2.1
-  notice of its phonetic table, which doc-checker does not use.
+  notice of its phonetic table, which documentation-checker does not use.
 - The wheels of lxml, numpy, Pillow and pypdfium2 embed native libraries under
   their own licences. They are listed in the `dist-info` folder of each of
   these packages.
-- colorama (BSD-3-Clause) is not a dependency of doc-checker: the locked
-  click 8.5.0 does not require it. It enters the lock file only through
+- colorama (BSD-3-Clause) is not a dependency of documentation-checker: the
+  locked click 8.5.0 does not require it. It enters the lock file only through
   pytest, on Windows, in the development group.
 - pdfplumber's PyPI classifier and its `LICENSE.txt` agree on MIT. The
   licences above come from the metadata of the locked versions and from the

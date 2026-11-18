@@ -7,8 +7,8 @@ import time
 import tracemalloc
 from typing import cast
 
-from doc_checker.audit.prose import Prose, excluded_spans
-from doc_checker.audit.spelling import (
+from documentation_checker.audit.prose import Prose, excluded_spans
+from documentation_checker.audit.spelling import (
     BLOCK_GUARD_MIN_WORDS,
     BLOCK_UNKNOWN_SHARE_MAX,
     ELISIONS,
@@ -17,8 +17,8 @@ from doc_checker.audit.spelling import (
     bare,
     spelling,
 )
-from doc_checker.model.findings import DiffSegment
-from doc_checker.spell.speller import Speller
+from documentation_checker.model.findings import DiffSegment
+from documentation_checker.spell.speller import Speller
 from tests.builders import make_block
 
 APOSTROPHE = "\U00002019"

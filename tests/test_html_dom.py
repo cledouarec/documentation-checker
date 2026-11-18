@@ -8,27 +8,27 @@ from typing import TYPE_CHECKING
 import lxml.html
 import pytest
 
-from doc_checker.errors import ConfigError
-from doc_checker.extract.html.dom import (
+from documentation_checker.errors import ConfigError
+from documentation_checker.extract.html.dom import (
     blocks_from_root,
     mark_code,
     mark_titles,
     strip_elements,
 )
-from doc_checker.extract.html.images import best_source
-from doc_checker.extract.html.profiles import (
+from documentation_checker.extract.html.images import best_source
+from documentation_checker.extract.html.profiles import (
     GLOBAL_STRIP,
     GLOBAL_TITLES,
     content_root,
     detect_profile,
     get_profile,
 )
-from doc_checker.model.document import BlockKind
+from documentation_checker.model.document import BlockKind
 
 if TYPE_CHECKING:
     from lxml.html import HtmlElement
 
-    from doc_checker.model.document import Block
+    from documentation_checker.model.document import Block
 
 
 def _root(body: str, head: str = "") -> HtmlElement:

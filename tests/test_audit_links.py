@@ -7,17 +7,21 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from doc_checker.audit.links import broken_link_drafts
-from doc_checker.audit.structure import structure_drafts
-from doc_checker.compare.aggregate import PATTERN_MAX_CHARS
-from doc_checker.model.document import Document, Link
-from doc_checker.model.facts import HtmlPageFacts, PdfLink, PdfPageFacts
+from documentation_checker.audit.links import broken_link_drafts
+from documentation_checker.audit.structure import structure_drafts
+from documentation_checker.compare.aggregate import PATTERN_MAX_CHARS
+from documentation_checker.model.document import Document, Link
+from documentation_checker.model.facts import (
+    HtmlPageFacts,
+    PdfLink,
+    PdfPageFacts,
+)
 from tests.builders import make_audit_document, make_block, make_heading
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from doc_checker.compare.drafts import Draft
+    from documentation_checker.compare.drafts import Draft
 
 
 def _to_ref(text: str, fragment: str) -> Link:

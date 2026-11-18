@@ -5,15 +5,15 @@ import time
 
 import lxml.html
 
-from doc_checker.extract.html.facts import (
+from documentation_checker.extract.html.facts import (
     LAYOUT_TABLE_CLASSES,
     content_spots,
     page_hrefs,
     page_ids,
     page_title,
 )
-from doc_checker.extract.html.images import raw_image
-from doc_checker.extract.html.profiles import GLOBAL_STRIP
+from documentation_checker.extract.html.images import raw_image
+from documentation_checker.extract.html.profiles import GLOBAL_STRIP
 
 
 def _page(body: str) -> lxml.html.HtmlElement:

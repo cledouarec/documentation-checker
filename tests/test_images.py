@@ -8,15 +8,15 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from doc_checker.images import refs
-from doc_checker.images.hashing import (
+from documentation_checker.images import refs
+from documentation_checker.images.hashing import (
     dhash,
     hamming,
     hamming_matrix,
     hashes,
     phash,
 )
-from doc_checker.images.pixels import (
+from documentation_checker.images.pixels import (
     UnreadableImage,
     flatten,
     gray,
@@ -25,14 +25,14 @@ from doc_checker.images.pixels import (
     uses_alpha,
     web_signature,
 )
-from doc_checker.images.refs import (
+from documentation_checker.images.refs import (
     content_digest,
     describe,
     pixels_ref,
     raster_ref,
     unreadable_ref,
 )
-from doc_checker.model.document import ImageRef, PixelSource
+from documentation_checker.model.document import ImageRef, PixelSource
 from tests.image_builders import (
     blurred,
     bomb_png,

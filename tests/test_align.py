@@ -6,9 +6,9 @@ from typing import Final
 
 import pytest
 
-import doc_checker.compare.align as align_module
-from doc_checker.compare.align import Pair, align, align_blocks
-from doc_checker.model.document import Block, BlockKind
+import documentation_checker.compare.align as align_module
+from documentation_checker.compare.align import Pair, align, align_blocks
+from documentation_checker.model.document import Block, BlockKind
 from tests.builders import (
     SPLIT_PARTS,
     SPLIT_WHOLE,
