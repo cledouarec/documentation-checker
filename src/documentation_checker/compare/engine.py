@@ -198,7 +198,12 @@ def _segments(
     bounds: tuple[int, int],
     op: SegmentOp,
 ) -> tuple[DiffSegment, ...]:
-    """Return a changed run of tokens with some context around it."""
+    """Return a changed run of tokens with some context around it.
+
+    The changed run is kept when it is empty, where the other side has text
+    that this one has not, so that the side tells where it is; the context
+    is kept only when it is not empty.
+    """
     start, end = bounds
     if start < end:
         changed = (tokens[start].start, tokens[end - 1].end)
@@ -216,7 +221,11 @@ def _segments(
         DiffSegment(op, text[changed[0] : changed[1]]),
         DiffSegment("equal", text[changed[1] : context_end]),
     )
-    return tuple(segment for segment in segments if segment.text)
+    return tuple(
+        segment
+        for segment in segments
+        if segment.text or segment.op != "equal"
+    )
 
 
 class _Drafter:

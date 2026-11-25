@@ -154,9 +154,13 @@ def md_cell(segments: Sequence[DiffSegment]) -> str:
     Returns:
         Escaped text, with a ``<br>`` for each line break, deletions in
         ``<del>``, insertions in ``<ins>`` and marked pieces in ``<mark>``.
+        Empty pieces, such as the place of a text that only the other side
+        has, are left out.
     """
     parts = []
     for segment in segments:
+        if not segment.text:
+            continue
         opening, closing = _MARKUP[segment.op]
         lines = _LINE_BREAK_RE.split(segment.text)
         text = "<br>".join(md_text(line) for line in lines)

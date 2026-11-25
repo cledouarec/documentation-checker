@@ -37,6 +37,7 @@ from documentation_checker.report.context import (
     relative_link,
     side_of,
 )
+from documentation_checker.report.html import render_html
 from documentation_checker.report.markdown import (
     md_cell,
     md_cell_code,
@@ -1138,3 +1139,21 @@ def test_context_figures_belong_to_their_command(
     for figure in (compare.checks, compare.profile):
         with pytest.raises(TypeError, match="a comparison has no figures"):
             figure()
+
+
+def test_empty_changes_are_not_shown(tmp_path: Path) -> None:
+    """The place of words that only the other side has shows no empty tag."""
+    text = (
+        "Install the package with the default configuration before you start."
+    )
+    result = compare_documents(
+        make_document(make_block(text)),
+        make_document(make_block(text.replace(" default", ""))),
+        Config(),
+    )
+    markdown = render_markdown(result, tmp_path / "report.md")
+    html = render_html(result, tmp_path / "report.html")
+    for report in (markdown, html):
+        written = report.read_text(encoding="utf-8")
+        assert "<ins></ins>" not in written
+        assert "<del>default</del>" in written
