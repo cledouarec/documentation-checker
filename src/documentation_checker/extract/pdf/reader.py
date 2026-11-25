@@ -55,6 +55,11 @@ from documentation_checker.images.refs import (
 from documentation_checker.model.document import PixelSource
 from documentation_checker.model.facts import PdfLink
 from documentation_checker.spell.words import EDGE
+from documentation_checker.text.codes import (
+    LINE_BREAKS,
+    char_text,
+    join_surrogates,
+)
 from documentation_checker.text.normalize import normalize_display, printable
 
 if TYPE_CHECKING:
@@ -129,13 +134,6 @@ LABEL_BYTES: Final = 1_024  # Of the label of a page.
 PAGE_LABEL_WORK: Final = 16_000_000
 
 _SUBSET_PREFIX: Final = re.compile(r"^[A-Z]{6}\+")
-_LINE_BREAKS: Final = frozenset({0x0A, 0x0D})
-_HYPHEN_CODE: Final = 0x02  # PDFium reports a line end hyphen as U+0002.
-_REPLACEMENT: Final = "\U0000fffd"
-_HIGH_SURROGATES: Final = range(0xD800, 0xDC00)
-_LOW_SURROGATES: Final = range(0xDC00, 0xE000)
-_ASTRAL_START: Final = 0x10000  # The first character beyond U+FFFF.
-_HALF_BITS: Final = 10  # The bits of a character that a surrogate half holds.
 _ARTIFACT: Final = "Artifact"
 _POINTS_PER_INCH: Final = 72.0
 # The format of an image, by the last filter of its stream; another filter
@@ -410,25 +408,6 @@ def is_code_font(name: str) -> bool:
         font.
     """
     return bool(CODE_FONT_NAME.search(_SUBSET_PREFIX.sub("", name)))
-
-
-def char_text(code: int, *, hyphen: bool, unmapped: bool) -> str:
-    """Return the text of a character reported by PDFium.
-
-    Args:
-        code: Unicode code point of the character.
-        hyphen: Whether the character is a hyphen that ends a line.
-        unmapped: Whether the character has no Unicode mapping.
-
-    Returns:
-        The replacement character for an unmapped character, a hyphen for a
-        line end hyphen, and else the character itself.
-    """
-    if unmapped:
-        return _REPLACEMENT
-    if hyphen and code == _HYPHEN_CODE:
-        return "-"
-    return chr(code)
 
 
 def _ends_run(last: PdfChar, char: PdfChar) -> bool:
@@ -743,56 +722,6 @@ def _text_at(
     return char_text(code, hyphen=hyphen, unmapped=unmapped), unmapped
 
 
-def _join_halves(high: str, low: str) -> str:
-    """Return the character that a high and a low surrogate half make."""
-    return chr(
-        _ASTRAL_START
-        + ((ord(high) - _HIGH_SURROGATES.start) << _HALF_BITS)
-        + (ord(low) - _LOW_SURROGATES.start),
-    )
-
-
-def _join_surrogates(chars: list[PdfChar]) -> tuple[list[PdfChar], int]:
-    """Join the surrogate halves of the characters beyond U+FFFF.
-
-    PDFium reports such a character as two UTF-16 halves, one character each,
-    and both have the box of the whole glyph. A high half followed by a low
-    half make one character. Any other half is replaced by U+FFFD, so that the
-    text can be encoded.
-
-    Args:
-        chars: The kept characters of a page.
-
-    Returns:
-        The characters, and the number of lone halves that were replaced.
-    """
-    joined: list[PdfChar] = []
-    lone = 0
-    high: PdfChar | None = None  # A high half that waits for its low half.
-    for char in chars:
-        code = ord(char.text)
-        if high is not None:
-            if code in _LOW_SURROGATES:
-                text = _join_halves(high.text, char.text)
-                joined.append(replace(high, text=text))
-                high = None
-                continue
-            joined.append(replace(high, text=_REPLACEMENT))
-            lone += 1
-            high = None
-        if code in _HIGH_SURROGATES:
-            high = char
-        elif code in _LOW_SURROGATES:
-            joined.append(replace(char, text=_REPLACEMENT))
-            lone += 1
-        else:
-            joined.append(char)
-    if high is not None:
-        joined.append(replace(high, text=_REPLACEMENT))
-        lone += 1
-    return joined, lone
-
-
 @dataclass(frozen=True, slots=True)
 class _FigureText:
     """Where the text drawn in the vector figures of a page lies.
@@ -885,7 +814,7 @@ def _read_chars(
     in_figure = False  # Whether the last character was drawn in a figure.
     for index in range(textpage.count_chars()):
         code = pdfium_c.FPDFText_GetUnicode(textpage, index)
-        if code in _LINE_BREAKS:
+        if code in LINE_BREAKS:
             continue
         obj = pdfium_c.FPDFText_GetTextObject(textpage, index)
         info = _object_info(textpage, index, obj, cache)
@@ -1010,7 +939,7 @@ def _upright_page(
     """
     turn = _page_turn(chars)
     kept, unmapped = _kept_chars(chars, turn, size)
-    joined, lone = _join_surrogates(kept)
+    joined, lone = join_surrogates(kept)
     width, height = size
     if turn % 2:  # A quarter turn, either way, swaps the sides of the page.
         width, height = height, width
