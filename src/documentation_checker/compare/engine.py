@@ -78,6 +78,7 @@ from documentation_checker.model.document import (
     BlockKind,
     Document,
     carry_anchors,
+    joined_source,
 )
 from documentation_checker.model.findings import DiffSegment, Finding, Side
 from documentation_checker.spell.speller import Speller
@@ -344,7 +345,7 @@ class _Drafter:
             code_words=_code_words(blocks) if prose else frozenset(),
         )
         return [
-            self.hunk_draft(hunk, ctx, ref_blocks[0], new_blocks[0])
+            self.hunk_draft(hunk, ctx, ref_blocks, new_blocks)
             for hunk in diff_tokens(ref_tokens, new_tokens, lines=lines)
         ]
 
@@ -364,10 +365,14 @@ class _Drafter:
         self,
         hunk: Hunk,
         ctx: HunkContext,
-        ref_block: Block,
-        new_block: Block,
+        ref_blocks: Sequence[Block],
+        new_blocks: Sequence[Block],
     ) -> Draft:
-        """Return the draft of one word level difference."""
+        """Return the draft of one word level difference.
+
+        Each side is at the first block of its blocks, with the boxes of all
+        of them, so that the difference is found wherever it lies.
+        """
         classification = self.classify(hunk, ctx)
         ref_segments = _segments(
             ctx.ref_text,
@@ -397,8 +402,8 @@ class _Drafter:
         return Draft(
             classification.rule,
             classification.severity,
-            Side(ref_block.source, ref_segments, ref_block.kind),
-            Side(new_block.source, new_segments, new_block.kind),
+            Side(joined_source(ref_blocks), ref_segments, ref_blocks[0].kind),
+            Side(joined_source(new_blocks), new_segments, new_blocks[0].kind),
             pattern=pattern,
         )
 

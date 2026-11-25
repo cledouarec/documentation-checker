@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from operator import attrgetter
 from typing import TYPE_CHECKING, Final
 
+from documentation_checker.extract.pdf.segments import ASCENT, DESCENT
+
 if TYPE_CHECKING:
     from collections.abc import Collection, Sequence
 
@@ -61,6 +63,16 @@ class Line:
     size: float
     mono: bool
     bold: bool
+
+    @property
+    def top(self) -> float:
+        """Top edge of the line box, above the baseline."""
+        return self.baseline + ASCENT * self.size
+
+    @property
+    def bottom(self) -> float:
+        """Bottom edge of the line box, below the baseline."""
+        return self.baseline - DESCENT * self.size
 
 
 def _is_column_cut(

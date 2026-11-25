@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Literal
 
 from documentation_checker.compare.align import PairKind
+from documentation_checker.model.document import joined_source
 from documentation_checker.model.findings import DiffSegment, Side
 from documentation_checker.text.normalize import ELLIPSIS, truncate
 
@@ -72,12 +73,13 @@ def whole(
         separator: What joins the texts of the blocks.
 
     Returns:
-        A side at the first block, of its kind, whose one segment is the
-        joined text, cut to `EXCERPT_MAX_CHARS` characters.
+        A side at the first block, with the boxes of all of them, of its
+        kind, whose one segment is the joined text, cut to
+        `EXCERPT_MAX_CHARS` characters.
     """
     text = separator.join(block.text for block in blocks)
     segments = (DiffSegment(op, truncate(text, EXCERPT_MAX_CHARS)),)
-    return Side(blocks[0].source, segments, blocks[0].kind)
+    return Side(joined_source(blocks), segments, blocks[0].kind)
 
 
 def marked_span(

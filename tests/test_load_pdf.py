@@ -29,6 +29,7 @@ from tests.pdf_builders import (
     build_fpdf2_pdf,
     build_images_pdf,
     build_inline_code_pdf,
+    build_lines_pdf,
     build_listing_pdf,
     build_ornaments_pdf,
     build_outline_pdf,
@@ -855,3 +856,68 @@ def test_code_fonts_give_code_words_for_the_audit(tmp_path: Path) -> None:
     assert [(b.kind, b.text) for b in plain.blocks] == [
         (BlockKind.PARAGRAPH, "tlmgr update"),
     ]
+
+
+# The baseline of the first line of `build_lines_pdf`: 72 points under the
+# top of an A4 page; the box of a line of Times-Roman 10 reaches 2.5 points
+# under its baseline and 8.5 points above.
+FIRST_BASELINE = 841.89 - 72
+
+
+def test_blocks_have_no_boxes_unless_asked(tmp_path: Path) -> None:
+    """The boxes of the blocks are only read for the screenshots."""
+    path = build_lines_pdf([["One line."]], tmp_path / "lines.pdf")
+    doc = load_pdf(path, PdfConfig(), lang="en")
+    assert [block.source.boxes for block in doc.blocks] == [()]
+
+
+def test_a_block_has_the_box_of_its_lines(tmp_path: Path) -> None:
+    """The box of a block holds its lines, from the descent to the ascent."""
+    paragraphs = [["One line."], ["Two lines,", "and the second one."]]
+    path = build_lines_pdf(paragraphs, tmp_path / "lines.pdf")
+    doc = load_pdf(path, PdfConfig(), lang="en", boxes=True)
+    first, second = (block.source.boxes for block in doc.blocks)
+    second_top = FIRST_BASELINE - 18
+    assert [(box.page, box.turn) for box in (*first, *second)] == [
+        (0, 0),
+        (0, 0),
+    ]
+    assert first[0].edges == pytest.approx(
+        (72, FIRST_BASELINE - 2.5, first[0].x1, FIRST_BASELINE + 8.5),
+        abs=0.5,
+    )
+    assert second[0].edges == pytest.approx(
+        (72, second_top - 12 - 2.5, second[0].x1, second_top + 8.5),
+        abs=0.5,
+    )
+    assert second[0].x1 > first[0].x1
+
+
+def test_a_paragraph_over_two_pages_has_a_box_on_each(tmp_path: Path) -> None:
+    """A paragraph that goes on at the next page has two boxes."""
+    lines = [f"line {i} of a long paragraph that goes on" for i in range(70)]
+    path = build_lines_pdf(
+        [["Intro."], [*lines, "and ends here."]],
+        tmp_path / "long.pdf",
+    )
+    doc = load_pdf(path, PdfConfig(), lang="en", boxes=True)
+    boxes = doc.blocks[1].source.boxes
+    assert [box.page for box in boxes] == [0, 1]
+    assert boxes[0].bottom < 100
+    assert boxes[1].top == pytest.approx(FIRST_BASELINE + 8.5, abs=0.5)
+
+
+def test_the_boxes_of_a_turned_page_are_upright(tmp_path: Path) -> None:
+    """A block of a turned page has its box on the page turned upright."""
+    path = build_turned_pdf(
+        [["First line of the turned page.", "Second line."]],
+        tmp_path / "turned.pdf",
+        turned={0},
+    )
+    doc = load_pdf(path, PdfConfig(), lang="en", boxes=True)
+    (box,) = doc.blocks[0].source.boxes
+    assert box.turn == 3
+    assert box.edges == pytest.approx(
+        (72, FIRST_BASELINE - 12 - 2.5, box.x1, FIRST_BASELINE + 8.5),
+        abs=0.5,
+    )

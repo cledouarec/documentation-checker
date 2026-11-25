@@ -20,7 +20,12 @@ from documentation_checker.config import (
     SpellingConfig,
 )
 from documentation_checker.errors import InputError
-from documentation_checker.model.document import Block, BlockKind
+from documentation_checker.model.document import (
+    Block,
+    BlockKind,
+    PageBox,
+    SourceRef,
+)
 from documentation_checker.model.findings import DiffSegment, Severity
 from documentation_checker.pipeline import run_compare
 from documentation_checker.spell import speller as speller_module
@@ -494,3 +499,28 @@ def test_a_long_table_in_both_documents_is_never_missing() -> None:
     occurrences = sum(len(f.occurrences) or 1 for f in result.findings)
     assert occurrences == changed
     assert result.new.warnings == []
+
+
+def _boxed(text: str, page: int) -> Block:
+    """Return a block of a PDF page, with the box of its lines."""
+    box = PageBox(page, 72.0, 600.0, 520.0, 640.0)
+    source = SourceRef("doc.pdf", page=page + 1, boxes=(box,))
+    return replace(make_block(text), source=source)
+
+
+def test_sides_of_several_blocks_have_the_boxes_of_all() -> None:
+    """A side of a split block has the boxes of all of its blocks."""
+    edited = SPLIT_PARTS[1].replace("settings", "options")
+    ref = make_document(_boxed(SPLIT_WHOLE, 0))
+    new = make_document(_boxed(SPLIT_PARTS[0], 4), _boxed(edited, 5))
+    findings = compare_documents(ref, new, Config()).findings
+    assert [finding.rule for finding in findings] == [
+        "block.split_merged",
+        "text.modified",
+    ]
+    for finding in findings:
+        assert finding.ref is not None
+        assert finding.new is not None
+        assert [box.page for box in finding.ref.source.boxes] == [0]
+        assert [box.page for box in finding.new.source.boxes] == [4, 5]
+        assert finding.new.source.page == 5

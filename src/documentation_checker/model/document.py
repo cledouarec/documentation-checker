@@ -64,6 +64,38 @@ SPELLED_KINDS: Final = frozenset(
 
 
 @dataclass(frozen=True, slots=True)
+class PageBox:
+    """Where a block lies on a page of a PDF, to mark it on a screenshot.
+
+    The coordinates are those of the lines of the reader: points, with the
+    y axis pointing up, from the lower left corner of the crop box of the
+    page turned upright, so that its text runs from left to right.
+
+    Attributes:
+        page: Position of the page in the document, from 0.
+        x0: Left edge.
+        bottom: Bottom edge.
+        x1: Right edge.
+        top: Top edge.
+        turn: The quarter turns, clockwise, that turned the page upright, as
+            `PdfPageText.turn` of the reader tells them: 0 for a page read
+            as it lies.
+    """
+
+    page: int
+    x0: float
+    bottom: float
+    x1: float
+    top: float
+    turn: int = 0
+
+    @property
+    def edges(self) -> tuple[float, float, float, float]:
+        """Left, bottom, right and top edges."""
+        return self.x0, self.bottom, self.x1, self.top
+
+
+@dataclass(frozen=True, slots=True)
 class SourceRef:
     """Location of a block in its source document.
 
@@ -72,12 +104,18 @@ class SourceRef:
         page: 1-based page number, for paginated formats.
         line: Source line number, for markup formats.
         anchor: Identifier of the nearest anchor.
+        boxes: Where the block lies on the pages of a PDF: one box per run
+            of its lines down a page or a column, in reading order. They are
+            read only for the screenshots of the reports, and two sources
+            that differ by their boxes alone are equal. Empty for HTML, and
+            unless the screenshots were asked for.
     """
 
     file: str
     page: int | None = None
     line: int | None = None
     anchor: str | None = None
+    boxes: tuple[PageBox, ...] = field(default=(), compare=False, repr=False)
 
     @property
     def fragment(self) -> str | None:
@@ -283,6 +321,23 @@ def carry_anchors(
         else:
             kept.append(block)
     return kept
+
+
+def joined_source(blocks: Sequence[Block]) -> SourceRef:
+    """Return the source of the first of some blocks, with all their boxes.
+
+    Args:
+        blocks: Blocks, at least one, in reading order.
+
+    Returns:
+        The source of the first block, whose boxes are those of every block,
+        in order; that source itself when the other blocks have no box.
+    """
+    first = blocks[0].source
+    others = tuple(box for block in blocks[1:] for box in block.source.boxes)
+    if not others:
+        return first
+    return replace(first, boxes=(*first.boxes, *others))
 
 
 @dataclass(slots=True)

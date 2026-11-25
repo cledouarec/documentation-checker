@@ -38,6 +38,7 @@ from documentation_checker.extract.common import (
 from documentation_checker.extract.pdf import reader, tables
 from documentation_checker.extract.pdf.blocks import (
     group_lines,
+    line_boxes,
     merge_flows,
     strip_list_marker,
 )
@@ -155,9 +156,10 @@ class _Page:
             `monospaced_words` of the reader finds them, if they were read.
         figures: The boxes of its vector figures, whether the images were
             read or not, from the lower left corner of its crop box.
-        turned: Whether the reader turned the page upright.
         crowded: Whether the page has too many paths for its drawings to be
             looked for, as `PdfPageText.crowded` of the reader tells.
+        turn: The quarter turns, clockwise, that turned the page upright, as
+            `PdfPageText.turn` of the reader tells them.
     """
 
     label: str
@@ -175,8 +177,13 @@ class _Page:
     untexted_links: int = 0
     code_words: frozenset[str] = frozenset()
     figures: tuple[Box, ...] = ()
-    turned: bool = False
     crowded: bool = False
+    turn: int = 0
+
+    @property
+    def turned(self) -> bool:
+        """Whether the reader turned the page upright."""
+        return self.turn != 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -368,8 +375,8 @@ def _read(
                         else frozenset()
                     ),
                     figures=page.figure_boxes,
-                    turned=page.turn != 0,
                     crowded=page.crowded,
+                    turn=page.turn,
                 ),
             )
     return _PdfFile(
@@ -672,6 +679,7 @@ def _blocks(  # ruff: ignore[too-many-arguments] - one input per earlier step
     placed: Sequence[Placed],
     file: str,
     counter: Counter[str],
+    turns: Sequence[int] | None,
 ) -> list[Block]:
     """Make the normalized blocks of a document, with their section paths.
 
@@ -685,6 +693,9 @@ def _blocks(  # ruff: ignore[too-many-arguments] - one input per earlier step
         placed: The image and table blocks, in the order of `place_order`.
         file: The name of the PDF file, which the blocks point to.
         counter: The counts of the normalizations.
+        turns: The quarter turns that turned each page upright, to give
+            each block of text the boxes of its runs of lines, as
+            `line_boxes` makes them; ``None`` for no boxes.
 
     Returns:
         The blocks, each located on the page of its first line, and the image
@@ -709,7 +720,13 @@ def _blocks(  # ruff: ignore[too-many-arguments] - one input per earlier step
             normalized_block(
                 kind,
                 raw_text,
-                SourceRef(file, page=page + 1),
+                SourceRef(
+                    file,
+                    page=page + 1,
+                    boxes=(
+                        () if turns is None else line_boxes(draft.lines, turns)
+                    ),
+                ),
                 counter,
                 level=levels[index][0] if heading else None,
                 attrs={HEADING_SOURCE: levels[index][1]} if heading else None,
@@ -1005,13 +1022,14 @@ def _page_facts(
     )
 
 
-def load_pdf(
+def load_pdf(  # ruff: ignore[too-many-arguments] - one keyword per part of the document that is read
     path: Path,
     cfg: PdfConfig,
     *,
     lang: str,
     images: bool = True,
     audit: bool = False,
+    boxes: bool = False,
 ) -> Document:
     """Load a PDF file.
 
@@ -1032,6 +1050,9 @@ def load_pdf(
             characters, the scans, the links and the monospaced words of
             the pages, and the structure tree of a document that declares
             its tags.
+        boxes: Whether each block of text or table tells where it lies on
+            its pages, by the boxes of its source, for the screenshots of
+            the reports.
 
     Returns:
         The document, its blocks in reading order. Its chrome lists the texts
@@ -1093,9 +1114,11 @@ def load_pdf(
             kept,
             file=path.name,
             counter=counter,
+            boxes=boxes,
         ),
         file=path.name,
         counter=counter,
+        turns=tuple(page.turn for page in pdf.pages) if boxes else None,
     )
     declared = declared_language(pdf.catalog.lang)
     tags = None
