@@ -35,6 +35,7 @@ from PIL import Image
 from documentation_checker.images.objects import (
     Box,
     PageObject,
+    boxes_meet,
     form_children,
     form_matrix,
     object_bounds,
@@ -66,7 +67,7 @@ from documentation_checker.images.streams import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
     from pathlib import Path
     from types import TracebackType
 
@@ -457,16 +458,7 @@ def _may_show(bounds: Box | None, box: Box) -> bool:
         False only for bounds known to lie outside the box. Bounds that are
         not known, or not numbers, may show in it.
     """
-    if bounds is None:
-        return True
-    left, bottom, right, top = bounds
-    box_left, box_bottom, box_right, box_top = box
-    return not (
-        right < box_left
-        or left > box_right
-        or top < box_bottom
-        or bottom > box_top
-    )
+    return bounds is None or boxes_meet(bounds, box)
 
 
 class RenderGuard:
@@ -560,6 +552,56 @@ def _refusal(image: pdfium.PdfImage) -> str | None:
     return None
 
 
+def fitted_scale(box: Box, scale: float) -> float:
+    """Return a scale, or less so that a render of a box fits.
+
+    Args:
+        box: The left, bottom, right and top edges of the box, in points.
+        scale: The pixels for each point that the render would rather have.
+
+    Returns:
+        The scale, or the one at which the longest side of the box has
+        `RENDER_SIDE_MAX` pixels, if it is less.
+    """
+    left, bottom, right, top = box
+    return min(scale, RENDER_SIDE_MAX / max(right - left, top - bottom))
+
+
+def _margined(box: Box, scale: float) -> Box:
+    """Return a box widened by `_RENDER_MARGIN` pixels at a scale."""
+    margin = _RENDER_MARGIN / scale
+    left, bottom, right, top = box
+    return left - margin, bottom - margin, right + margin, top + margin
+
+
+def _checked_render(
+    guard: RenderGuard,
+    checked: Box,
+    render: Callable[[], pdfium.PdfBitmap],
+) -> Image.Image:
+    """Return a render, once the image objects that it may decode pass.
+
+    Args:
+        guard: The checks of the image objects of the page.
+        checked: The box whose image objects are checked, in the coordinates
+            of PDFium for the page.
+        render: Renders the page, once the checks have passed.
+
+    Returns:
+        The render.
+
+    Raises:
+        UnreadableImage: If an image object that may show in the box is
+            refused, or if PDFium cannot render.
+    """
+    try:
+        guard.check(checked)
+        bitmap = render()
+    except pdfium.PdfiumError, ValueError:
+        raise UnreadableImage(CANNOT_DECODE) from None
+    return bitmap.to_pil()
+
+
 def render_figure(
     page: pdfium.PdfPage,
     box: Box,
@@ -580,33 +622,24 @@ def render_figure(
             renders of its figures, or ``None`` for checks of its own.
 
     Returns:
-        The render, in RGB.
-
-    Raises:
-        UnreadableImage: If an image object that may show in the box is
-            refused, or if PDFium cannot render the box.
+        The render, in RGB. An image object that may show in the box and that
+        is refused, or a box that PDFium cannot render, raises the
+        `UnreadableImage` of `_checked_render`.
     """
     page_left, page_bottom, page_right, page_top = page.get_bbox()
     left, bottom, right, top = box
-    longest = max(right - left, top - bottom)
-    scale = min(RENDER_SCALE, RENDER_SIDE_MAX / longest)
-    margin = _RENDER_MARGIN / scale
-    around = (left - margin, bottom - margin, right + margin, top + margin)
-    try:
-        (guard or RenderGuard(page)).check(around)
-        bitmap = page.render(
-            scale=scale,
-            crop=(
-                left - page_left,
-                bottom - page_bottom,
-                page_right - right,
-                page_top - top,
-            ),
-            draw_annots=False,
-        )
-    except pdfium.PdfiumError, ValueError:
-        raise UnreadableImage(CANNOT_DECODE) from None
-    return bitmap.to_pil()
+    scale = fitted_scale(box, RENDER_SCALE)
+    crop = (
+        left - page_left,
+        bottom - page_bottom,
+        page_right - right,
+        page_top - top,
+    )
+    return _checked_render(
+        guard or RenderGuard(page),
+        _margined(box, scale),
+        lambda: page.render(scale=scale, crop=crop, draw_annots=False),
+    )
 
 
 class PixelLoader:
