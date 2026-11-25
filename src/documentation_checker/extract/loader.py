@@ -83,6 +83,7 @@ def load_document(
             lang=cfg.lang,
             images=cfg.images,
             audit=audit,
+            boxes=cfg.screenshots,
         )
     return load_html(
         path,

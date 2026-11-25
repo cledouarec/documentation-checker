@@ -133,6 +133,43 @@ def test_pdf_tables_key(tmp_path: Path) -> None:
     assert apply_overrides(Config(), CliOverrides()).pdf.tables is False
 
 
+def test_screenshots_keys(tmp_path: Path) -> None:
+    """The screenshots are off by default, on by the key or by the option."""
+    default = load_config(None, cwd=tmp_path)
+    assert (default.screenshots, default.screenshots_max) == (False, None)
+    conf = tmp_path / "c.toml"
+    conf.write_text(
+        "[general]\nscreenshots = true\nscreenshots_max = 50\n",
+        encoding="utf-8",
+    )
+    loaded = load_config(conf, cwd=tmp_path)
+    assert (loaded.screenshots, loaded.screenshots_max) == (True, 50)
+    on = apply_overrides(Config(), CliOverrides(screenshots=True))
+    assert (on.screenshots, on.screenshots_max) == (True, None)
+    assert apply_overrides(loaded, CliOverrides()).screenshots is True
+
+
+@pytest.mark.parametrize(
+    ("line", "key"),
+    [
+        ("screenshots = 'yes'", "general.screenshots"),
+        ("screenshots_max = 0", "general.screenshots_max"),
+        ("screenshots_max = 2.5", "general.screenshots_max"),
+        ("screenshots_max = true", "general.screenshots_max"),
+    ],
+)
+def test_invalid_screenshots_keys_are_rejected(
+    tmp_path: Path,
+    line: str,
+    key: str,
+) -> None:
+    """The screenshots key is a boolean, and the limit an integer above 0."""
+    conf = tmp_path / "c.toml"
+    conf.write_text(f"[general]\n{line}\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match=re.escape(key)):
+        load_config(conf, cwd=tmp_path)
+
+
 def test_pdf_ranges_include_their_upper_bound(tmp_path: Path) -> None:
     """A band can cover half of the page and a share all of the pages."""
     (tmp_path / "documentation-checker.toml").write_text(

@@ -13,6 +13,10 @@
 {% else %}
 **Checks:** {{ checks }} · **Profile:** {{ profile }}
 {% endif %}
+{% if screenshot_note %}
+
+{{ md_text(screenshot_note) }}
+{% endif %}
 
 ## Summary
 
@@ -71,7 +75,7 @@ No findings.
 | ID |{% for column in columns %} {{ column.label }} |{% endfor +%}
 |---|{% for column in columns %}---|{% endfor +%}
 {% for item in context.shown(finding) %}
-| {{ md_code(item.id) }} |{% for column in columns %}{% set side = side_of(item, column.which) %} {{ image(side, column.which) }}{{ link(side, column.which) }}<br>{{ cell(side) }} |{% endfor +%}
+| {{ md_code(item.id) }} |{% for column in columns %}{% set side = side_of(item, column.which) %} {{ image(side, column.which) }}{{ link(side, column.which) }}<br>{{ cell(side) }}{{ shot(item, column) }} |{% endfor +%}
 {% endfor %}
 {% if context.hidden(finding) %}
 
@@ -92,6 +96,11 @@ and {{ context.hidden(finding) }} more occurrences
 {% if command == "compare" and is_code(finding) %}
 {% set lines = diff_lines(finding) %}
 {% set fence = md_fence(lines) %}
+{% set shots = shot_line(finding) %}
+{% if shots %}
+
+{{ shots }}
+{% endif %}
 
 {{ fence }}diff
 {% for line in lines %}
@@ -102,9 +111,23 @@ and {{ context.hidden(finding) }} more occurrences
 
 |{% for column in columns %} {{ column.label }} |{% endfor +%}
 |{% for column in columns %}---|{% endfor +%}
-|{% for column in columns %}{% set side = side_of(finding, column.which) %} {{ image(side, column.which) }}{{ cell(side) }} |{% endfor +%}
+|{% for column in columns %}{% set side = side_of(finding, column.which) %} {{ image(side, column.which) }}{{ cell(side) }}{{ shot(finding, column) }} |{% endfor +%}
 {% endif %}
 {% endif %}
 {% endfor %}
 {% endfor %}
 {% endfor %}
+{% if rows %}
+
+## Pages ({{ rows | length }})
+{% for row in rows %}
+
+### {{ row.title }}
+
+{% for column in columns %}{% set page = row.of(column.which) %}{% if page %}<a name="{{ page.anchor }}"></a>{% endif %}{% endfor +%}
+
+|{% for column in columns %} {{ column.label }} |{% endfor +%}
+|{% for column in columns %}---|{% endfor +%}
+|{% for column in columns %} {{ page_cell(row.of(column.which)) }} |{% endfor +%}
+{% endfor %}
+{% endif %}

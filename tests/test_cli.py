@@ -24,6 +24,7 @@ from tests.builders import (
 )
 from tests.pdf_builders import (
     build_fpdf2_pdf,
+    build_lines_pdf,
     build_raw_pdf,
     build_reportlab_pdf,
     build_scanned_pdf,
@@ -259,6 +260,72 @@ def test_compare_pdf_writes_report_with_page_links(tmp_path: Path) -> None:
     assert "CRITICAL text.number_changed  ref.pdf#page=9" in result.output
     report = (out / "report.md").read_text(encoding="utf-8")
     assert "[ref.pdf#page=9](../ref.pdf#page=9)" in report
+
+
+def test_compare_pdf_with_screenshots(tmp_path: Path) -> None:
+    """With --screenshots, the reports zoom on each side and show its page."""
+    ref = build_reportlab_pdf(SAMPLE_EN, tmp_path / "ref.pdf")
+    new = build_fpdf2_pdf(
+        replace_text(SAMPLE_EN, "100 requests", "10 requests"),
+        tmp_path / "new.pdf",
+    )
+    out = tmp_path / "out"
+    args = ["compare", str(ref), str(new), "-o", str(out), "--screenshots"]
+    result = CliRunner().invoke(main, args)
+    assert result.exit_code == 0, result.output
+    tree = lxml.html.document_fromstring(
+        (out / "report.html").read_text(encoding="utf-8"),
+    )
+    shots = tree.xpath("//img[@class='shot']")
+    assert [shot.get("alt") for shot in shots] == [
+        "Reference, page 9",
+        "New, page 1",
+    ]
+    pages = tree.xpath("//img[@class='page-shot']")
+    assert [page.get("alt") for page in pages] == [
+        "Reference, page 9, with its findings",
+        "New, page 1, with its findings",
+    ]
+    assets = list((out / "report_assets").glob("*.webp"))
+    assert len(assets) == len(shots) + len(pages)
+
+
+def test_audit_pdf_with_screenshots(tmp_path: Path) -> None:
+    """With --screenshots, the audit of a PDF zooms on its findings."""
+    doc = build_lines_pdf(
+        [["See Section ?? for the limits."]],
+        tmp_path / "doc.pdf",
+    )
+    out = tmp_path / "out"
+    args = ["audit", str(doc), "-o", str(out), "--screenshots"]
+    result = CliRunner().invoke(main, args)
+    assert result.exit_code == 0, result.output
+    tree = lxml.html.document_fromstring(
+        (out / "report.html").read_text(encoding="utf-8"),
+    )
+    rules = tree.xpath("//article[.//img[@class='shot']]/@data-rule")
+    assert rules == ["structure.unresolved_reference"]
+    (shot,) = tree.xpath("//img[@class='shot']")
+    assert shot.get("alt") == "Document, page 1"
+    (page,) = tree.xpath("//article[@class='page']//div[@id]")
+    assert page.get("id") == "p-ref-1"
+    assert page.findtext("h3") == "Document, page 1"
+
+
+def test_screenshots_leave_html_reports_as_they_are(tmp_path: Path) -> None:
+    """The screenshots are only made for PDF documents."""
+    ref = build_sphinx_like(SAMPLE_EN, tmp_path / "ref")
+    new = build_mkdocs_like(
+        replace_text(SAMPLE_EN, "100 requests", "10 requests"),
+        tmp_path / "new",
+    )
+    out = tmp_path / "out"
+    args = ["compare", str(ref), str(new), "-o", str(out), "--screenshots"]
+    result = CliRunner().invoke(main, args)
+    assert result.exit_code == 0, result.output
+    html = (out / "report.html").read_text(encoding="utf-8")
+    assert not lxml.html.document_fromstring(html).xpath("//img")
+    assert not (out / "report_assets").exists()
 
 
 def test_compare_pdf_with_html_exits_3(tmp_path: Path) -> None:

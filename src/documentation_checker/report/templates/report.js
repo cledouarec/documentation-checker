@@ -30,7 +30,18 @@
     });
     shown.value = String(count);
   }
+  // A page links to the occurrences of a group, which a closed list holds.
+  function reveal() {
+    const target = document.getElementById(location.hash.slice(1));
+    const closed = target && target.closest("details:not([open])");
+    if (closed) {
+      closed.open = true;
+      target.scrollIntoView();
+    }
+  }
   form.addEventListener("input", apply);
   form.addEventListener("submit", (event) => event.preventDefault());
+  window.addEventListener("hashchange", reveal);
   apply();
+  reveal();
 })();

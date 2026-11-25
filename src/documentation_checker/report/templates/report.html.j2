@@ -26,9 +26,13 @@
 {% for column in columns %}
 {% set which, label, side = column.which, column.label, side_of(finding, column.which) %}
 {% set thumb = thumbnail(side, which) %}
+{% set shot = screenshot(finding, which) %}
+{% set page = page_shot(finding, which) %}
 <div class="side {{ which }}"><h4>{{ label }}{% if side is not none and side.kind is not none %} <span class="kind">{{ side.kind.value | replace("_", " ") }}</span>{% endif %}</h4>
 {%- if thumb %}<img class="thumb" src="{{ thumb.data_uri }}" alt="{{ label }} image" width="{{ thumb.width }}" height="{{ thumb.height }}">{% endif %}
-{{- side_text(side, is_code(finding)) }}</div>
+{{- side_text(side, is_code(finding)) }}
+{%- if shot %}<img class="shot" src="{{ shot.image.data_uri | safe }}" alt="{{ label }}, page {{ shot.page }}" width="{{ shot.image.width }}" height="{{ shot.image.height }}">{% endif %}
+{%- if page %}<p class="page-link"><a href="#{{ page.anchor }}">Whole page {{ page.page }}</a> ({{ counted(page.findings | length, "finding") }})</p>{% endif %}</div>
 {% endfor %}
 </div>
 {%- endmacro %}
@@ -56,6 +60,12 @@
 <p class="matched">Matched: {{ matched }}% of reference blocks{% if matched_images %}, {{ matched_images }}{% endif %} &middot; Moved: {{ moved }}</p>
 {% else %}
 <p class="checks">Checks: {{ checks }} &middot; Profile: {{ profile }}</p>
+{% endif %}
+{% if screenshot_note %}
+<p class="shots">{{ screenshot_note }}</p>
+{% endif %}
+{% if rows %}
+<p class="shots">The <a href="#pages">pages</a> of the findings, with their marks{% if columns | length > 1 %}, the reference beside the new document{% endif %}</p>
 {% endif %}
 <ul class="counts">
 {% for severity, count in counts %}
@@ -135,7 +145,7 @@
 <section class="severity" data-severity="{{ severity.label }}">
 <h2>{{ severity_titles[severity] }} ({{ findings | length }})</h2>
 {% for finding in findings %}
-<article class="finding" id="{{ dom_id(finding.id) }}" data-severity="{{ finding.severity.label }}" data-category="{{ finding.category.value }}" data-rule="{{ finding.rule }}">
+<article class="finding" id="{{ dom_id(finding) }}" data-severity="{{ finding.severity.label }}" data-category="{{ finding.category.value }}" data-rule="{{ finding.rule }}">
 <h3>{{ finding.title }} <code>{{ finding.rule }}</code></h3>
 {% if finding.occurrences %}
 {{ ident(finding) }}
@@ -145,7 +155,7 @@
 <details class="occurrences"><summary>{{ finding.occurrences | length }} occurrences</summary>
 <ol>
 {% for item in shown(finding) %}
-<li id="{{ dom_id(item.id) }}">{{ where(item) }}{{ ident(item) }}{{ sides(item) }}</li>
+<li id="{{ dom_id(item) }}">{{ where(item) }}{{ ident(item) }}{{ sides(item) }}</li>
 {% endfor %}
 </ol>
 {% if hidden(finding) %}
@@ -165,6 +175,37 @@
 </section>
 {% endfor %}
 </main>
+{% if rows %}
+<section id="pages">
+<h2>Pages ({{ rows | length }})</h2>
+{% for row in rows %}
+<article class="page">
+<div class="sides{% if columns | length == 1 %} single{% endif %}">
+{% for column in columns %}
+{% set page = row.of(column.which) %}
+{% if page %}
+<div class="side {{ column.which }}" id="{{ page.anchor }}"><h3>{{ page.title }}</h3>
+<img class="page-shot" src="{{ page.image.data_uri | safe }}" alt="{{ page.title }}{% if page.findings %}, with its findings{% endif %}" width="{{ page.image.width }}" height="{{ page.image.height }}">
+{% if page.findings %}
+<ul class="on-page">
+{% for item in page.findings %}
+{% set found = target(item) %}
+<li data-severity="{{ item.severity.label }}">{% if found %}<a href="#{{ found }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %} <code>{{ item.rule }}</code></li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="none">No findings on this page.</p>
+{% endif %}
+</div>
+{% else %}
+<div class="side {{ column.which }}"><h3>{{ column.label }}</h3><p class="absent">&mdash;</p></div>
+{% endif %}
+{% endfor %}
+</div>
+</article>
+{% endfor %}
+</section>
+{% endif %}
 <script>{{ script | safe }}</script>
 </body>
 </html>
