@@ -32,6 +32,11 @@ import pypdfium2 as pdfium
 import pypdfium2.raw as pdfium_c
 from PIL import Image
 
+from documentation_checker.images.frames import (
+    from_upright,
+    upright_rotation,
+    upright_size,
+)
 from documentation_checker.images.objects import (
     Box,
     PageObject,
@@ -639,6 +644,57 @@ def render_figure(
         guard or RenderGuard(page),
         _margined(box, scale),
         lambda: page.render(scale=scale, crop=crop, draw_annots=False),
+    )
+
+
+def render_upright(
+    page: pdfium.PdfPage,
+    area: Box,
+    *,
+    turn: int,
+    guard: RenderGuard,
+    scale: float,
+) -> Image.Image:
+    """Render an area of a page turned upright, as the reader reads it.
+
+    PDFium renders the page with the rotation that turns it upright, as
+    `upright_rotation` tells it, and only the area of that render. Before it
+    renders, every image object that it may decode there, or a few pixels
+    around, is checked as `decode_object` checks it. The annotations of the
+    page are not drawn.
+
+    Args:
+        page: The page.
+        area: The left, bottom, right and top edges of the area, from the
+            lower left corner of the crop box of the page turned upright,
+            within that crop box: the whole page is from 0, 0 to its width
+            and its height turned upright.
+        turn: The quarter turns, clockwise, of the text of the page.
+        guard: The checks of the image objects of the page, shared by its
+            renders.
+        scale: Pixels for each point.
+
+    Returns:
+        The render, in RGBX, which shares the buffer of the bitmap without a
+        copy. An image object that may show in the area and that is refused,
+        or an area that PDFium cannot render, raises the `UnreadableImage`
+        of `_checked_render`.
+    """
+    crop = page.get_bbox()
+    width, height = upright_size(crop, turn)
+    left, bottom, right, top = area
+    rotation = upright_rotation(turn, page.get_rotation())
+    return _checked_render(
+        guard,
+        from_upright(_margined(area, scale), crop, turn),
+        lambda: page.render(
+            scale=scale,
+            rotation=rotation,
+            crop=(left, bottom, width - right, height - top),
+            draw_annots=False,
+            rev_byteorder=True,
+            prefer_bgrx=True,
+        ),
     )
 
 
