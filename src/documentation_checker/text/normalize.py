@@ -194,6 +194,25 @@ def loose_key(strict: str) -> str:
     return " ".join(text.split())
 
 
+def match_key(text: str) -> str:
+    """Return the letters and digits of a text, to find it on a page.
+
+    The text is decomposed for compatibility, which splits the ligatures and
+    sets the accents apart, then case folded, and only its letters and
+    digits are kept: blanks, punctuation, hyphens, accents and the marks of
+    any kind are left out. Each step works on one character at a time, so
+    that the key of a text is the keys of its characters, joined.
+
+    Args:
+        text: Any text.
+
+    Returns:
+        Its letters and digits, case folded.
+    """
+    folded = unicodedata.normalize("NFKD", text).casefold()
+    return "".join(char for char in folded if char.isalnum())
+
+
 def truncate(text: str, limit: int) -> str:
     """Return a text cut to a number of characters.
 
