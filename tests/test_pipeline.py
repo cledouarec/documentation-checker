@@ -37,10 +37,11 @@ from tests.builders import (
 from tests.pdf_builders import build_reportlab_pdf
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Collection, Mapping
+    from collections.abc import Callable, Collection, Mapping, Sequence
     from pathlib import Path
 
     from documentation_checker.compare.engine import CompareResult
+    from documentation_checker.model.document import Document
 
 
 IMAGES_ONLY = Config(checks=("images",))
@@ -553,6 +554,29 @@ def test_documents_are_the_same_in_two_processes(
         assert apart[0].warnings == [
             "1 page(s) without text, probably scanned: 10",
         ]
+
+
+def test_boxes_are_the_same_in_two_processes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The boxes of the blocks read in two processes equal those read here."""
+    pair = _figure_pdfs(tmp_path)
+    cfg = Config(screenshots=True)
+    monkeypatch.setattr(
+        "documentation_checker.pipeline.PARALLEL_MIN_BYTES",
+        10**18,
+    )
+    here = load_pair(*pair, cfg)
+    results = _real_pools(monkeypatch)
+    apart = load_pair(*pair, cfg)
+    assert len(results) == 2
+
+    def boxes(documents: Sequence[Document]) -> list[list[object]]:
+        return [[b.source.boxes for b in doc.blocks] for doc in documents]
+
+    assert boxes(apart) == boxes(here)
+    assert any(box for doc in boxes(apart) for box in doc)
 
 
 @pytest.mark.parametrize(

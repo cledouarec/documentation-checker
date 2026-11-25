@@ -2,8 +2,8 @@
 """Measure the time and the peak memory of the stages of a run.
 
 Usage: ``uv run python tools/benchmark.py {extract,audit,compare} PATH
-[PATH] [--no-images] [--pdf-tables] [-o DIR]``. One line per stage: its
-seconds and the peak memory of the process so far.
+[PATH] [--no-images] [--pdf-tables] [--screenshots] [-o DIR]``. One line
+per stage: its seconds and the peak memory of the process so far.
 """
 
 import argparse
@@ -145,6 +145,11 @@ def parse(argv: Sequence[str] | None) -> argparse.Namespace:
         help="read the ruled tables of PDF documents (pdf-tables extra)",
     )
     parser.add_argument(
+        "--screenshots",
+        action="store_true",
+        help="zoom on the findings of PDF documents, and show their pages",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         type=Path,
@@ -182,6 +187,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             images=not args.no_images,
             output=output,
             pdf=PdfConfig(tables=args.pdf_tables),
+            screenshots=args.screenshots,
         )
         runs[args.command](args.paths, cfg)
     return 0

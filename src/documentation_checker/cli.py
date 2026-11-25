@@ -133,6 +133,14 @@ def _config_options[F: Callable[..., object]](
 def _report_options[F: Callable[..., object]](function: F) -> F:
     """Return the command with the report options added."""
     function = click.option(
+        "--screenshots",
+        is_flag=True,
+        help=(
+            "Zoom on the change of each finding of a PDF document, and show "
+            "each of its pages with all its findings, marked."
+        ),
+    )(function)
+    function = click.option(
         "--words",
         multiple=True,
         type=click.Path(exists=True, dir_okay=False, path_type=Path),
@@ -300,6 +308,7 @@ def compare(  # ruff: ignore[too-many-arguments] - Click passes options as keywo
     min_severity: str | None,
     disable: tuple[str, ...],
     words: tuple[Path, ...],
+    screenshots: bool,
     ignore_moves: bool,
     config: Path | None,
     lang: str | None,
@@ -321,6 +330,7 @@ def compare(  # ruff: ignore[too-many-arguments] - Click passes options as keywo
                 exclude=exclude,
                 disable=disable,
                 words=words,
+                screenshots=screenshots,
                 ignore_moves=ignore_moves,
                 no_images=no_images,
                 pdf_tables=pdf_tables,
@@ -365,6 +375,7 @@ def audit(  # ruff: ignore[too-many-arguments] - Click passes options as keyword
     min_severity: str | None,
     disable: tuple[str, ...],
     words: tuple[Path, ...],
+    screenshots: bool,
     checks: tuple[str, ...] | None,
     profile: str | None,
     emit_wordlist: Path | None,
@@ -393,6 +404,7 @@ def audit(  # ruff: ignore[too-many-arguments] - Click passes options as keyword
                 exclude=exclude,
                 disable=disable,
                 words=words,
+                screenshots=screenshots,
                 no_images=no_images,
                 checks=checks,
                 profile=profile,

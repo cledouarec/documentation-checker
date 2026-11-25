@@ -78,16 +78,17 @@ uv run pytest
 stage, with its seconds and the peak memory of the process so far:
 
 ```bash
-uv run python tools/benchmark.py extract PATH [--no-images] [--pdf-tables]
-uv run python tools/benchmark.py audit PATH [--no-images] [--pdf-tables] [-o DIR]
-uv run python tools/benchmark.py compare REF NEW [--no-images] [--pdf-tables] [-o DIR]
+uv run python tools/benchmark.py extract PATH [--no-images] [--pdf-tables] [--screenshots]
+uv run python tools/benchmark.py audit PATH [--no-images] [--pdf-tables] [--screenshots] [-o DIR]
+uv run python tools/benchmark.py compare REF NEW [--no-images] [--pdf-tables] [--screenshots] [-o DIR]
 ```
 
 The stages are `extract` for `extract`; `extract (audit facts)`,
 `structure`, `a11y`, `images`, `text` and `reports` for `audit`;
 `extract ref`, `extract new`, `compare` and `reports` for `compare`. The
 reports are written in `-o`, by default in a temporary folder that is
-removed. The peak memory comes from `resource.getrusage` and is shown only
+removed. With `--screenshots`, the extraction keeps where the blocks lie and
+the `reports` stage takes the screenshots. The peak memory comes from `resource.getrusage` and is shown only
 on POSIX systems; elsewhere the tool prints `n/a`.
 
 The [Performance](README.md#performance) section of the README gives the

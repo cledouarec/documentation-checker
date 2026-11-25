@@ -219,6 +219,11 @@ class Config:
         spelling: Spell checking settings.
         ignore: What to leave out of the reports.
         severity: Severity overrides by rule identifier.
+        screenshots: Whether the reports zoom on the place of each side of
+            a finding, and show each page with all its findings, for PDF
+            documents.
+        screenshots_max: Most findings whose sides get a screenshot, the
+            first in the order of the reports; ``None`` for no limit.
     """
 
     lang: str = "auto"
@@ -235,6 +240,8 @@ class Config:
     spelling: SpellingConfig = field(default_factory=SpellingConfig)
     ignore: IgnoreConfig = field(default_factory=IgnoreConfig)
     severity: Mapping[str, Severity] = field(default_factory=dict)
+    screenshots: bool = False
+    screenshots_max: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -254,6 +261,7 @@ class CliOverrides:
     profile: str | None = None
     words: tuple[Path, ...] = ()
     pdf_tables: bool = False
+    screenshots: bool = False
 
 
 class _Section:
@@ -376,6 +384,8 @@ def _parse_general(section: _Section, base_dir: Path, cwd: Path) -> Config:
             "images",
             "checks",
             "profile",
+            "screenshots",
+            "screenshots_max",
         ),
     )
     formats = section.texts("formats", DEFAULT_FORMATS)
@@ -399,6 +409,12 @@ def _parse_general(section: _Section, base_dir: Path, cwd: Path) -> Config:
         images=section.flag("images", default=True),
         checks=checks,
         profile=section.choice("profile", "screen", PROFILES),
+        screenshots=section.flag("screenshots", default=False),
+        screenshots_max=(
+            section.count("screenshots_max", 1)
+            if "screenshots_max" in section.data
+            else None
+        ),
     )
 
 
@@ -707,6 +723,8 @@ def apply_overrides(cfg: Config, overrides: CliOverrides) -> Config:
         changes["images"] = False
     if overrides.pdf_tables:
         changes["pdf"] = replace(cfg.pdf, tables=True)
+    if overrides.screenshots:
+        changes["screenshots"] = True
     for name in (
         "lang",
         "min_severity",

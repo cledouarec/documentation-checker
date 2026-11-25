@@ -1,9 +1,11 @@
 # Copyright 2026 Christophe Le Douarec
 """Markdown report of a comparison or of an audit.
 
-The thumbnails that the report shows are WebP files in a directory next to
-it, named by their content. A file already there is kept, and none is ever
-deleted.
+The thumbnails and the screenshots that the report shows are WebP files in a
+directory next to it, named by their content. A file already there is kept,
+and none is ever deleted. Each page that the screenshots show is in the report
+once, in a table of the Pages section, beside the page of the other document
+that matches it, after an anchor that the findings on the page link to.
 """
 
 import difflib
@@ -19,9 +21,11 @@ from documentation_checker.report.context import (
     Column,
     ReportContext,
     Thumbnails,
+    counted,
     is_code,
     side_of,
 )
+from documentation_checker.report.screenshots import PageShot, Screenshots
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -32,7 +36,7 @@ if TYPE_CHECKING:
     from documentation_checker.images.thumbnail import Thumbnail
     from documentation_checker.model.findings import DiffSegment, Finding, Side
 
-# The directory of the thumbnails, next to the report.
+# The directory of the thumbnails and of the screenshots, next to the report.
 ASSETS_DIR: Final = "report_assets"
 _ABSENT: Final = "\U00002014"
 _MARKUP: Final = {
@@ -239,20 +243,28 @@ def _holds(target: Path, size: int) -> bool:
 
 
 class _Assets:
-    """The thumbnails that a Markdown report shows, as files next to it."""
+    """The images that a Markdown report shows, as files next to it.
+
+    The images are the thumbnails of the images of the sides of the findings
+    and the screenshots of their pages.
+    """
 
     def __init__(
         self,
         thumbnails: Thumbnails,
+        screenshots: Screenshots,
         columns: Sequence[Column],
     ) -> None:
-        """Start with no thumbnail shown.
+        """Start with no image shown.
 
         Args:
             thumbnails: Thumbnails of the sides of the findings.
+            screenshots: Screenshots of the sides of the findings.
             columns: The columns of the report, which name the images.
         """
         self._thumbnails = thumbnails
+        self._screenshots = screenshots
+        self._columns = tuple(columns)
         self._labels = {
             column.which: f"{column.label} image" for column in columns
         }
@@ -271,8 +283,80 @@ class _Assets:
         thumb = self._thumbnails.get(side, which)
         if thumb is None:
             return ""
-        self._shown.setdefault(thumb.name, thumb)
-        return f"![{self._labels[which]}]({ASSETS_DIR}/{thumb.name})<br>"
+        return f"{self._embed(self._labels[which], thumb)}<br>"
+
+    def _embed(self, label: str, image: Thumbnail) -> str:
+        """Return the Markdown image of a file to write next to the report."""
+        name = image.name
+        self._shown.setdefault(name, image)
+        return f"![{label}]({ASSETS_DIR}/{name})"
+
+    def _screenshots_of(self, finding: Finding, column: Column) -> list[str]:
+        """Return the zoom of a side and the link to its page, if any."""
+        shown = []
+        zoom = self._screenshots.get(finding, column.which)
+        if zoom is not None:
+            label = f"{column.label}, page {zoom.page}"
+            shown.append(self._embed(label, zoom.image))
+        page = self._screenshots.page(finding, column.which)
+        if page is not None:
+            count = counted(len(page.findings), "finding")
+            link = f"[Whole page {page.page}](#{page.anchor})"
+            shown.append(f"{link} ({count})")
+        return shown
+
+    def shot(self, finding: Finding, column: Column) -> str:
+        """Return the screenshots that end the table cell of a side.
+
+        Args:
+            finding: A finding, or an occurrence of a group.
+            column: The column of the side.
+
+        Returns:
+            The image of its zoom and the link to its page, each after a
+            line break; "" without any.
+        """
+        shown = self._screenshots_of(finding, column)
+        return "".join(f"<br>{part}" for part in shown)
+
+    def shot_line(self, finding: Finding) -> str:
+        """Return the screenshots of the sides of a finding, on one line.
+
+        Args:
+            finding: A finding.
+
+        Returns:
+            The image of the zoom of each side and the link to its page, in
+            the order of the columns, joined by a blank; "" without any.
+        """
+        return " ".join(
+            part
+            for column in self._columns
+            for part in self._screenshots_of(finding, column)
+        )
+
+    def page_cell(self, page: PageShot | None) -> str:
+        """Return the table cell of a page of the Pages section.
+
+        Args:
+            page: The page, if the row has one in the column.
+
+        Returns:
+            The image of its screenshot, then its findings, one on each line;
+            a dash without a page.
+        """
+        if page is None:
+            return _ABSENT
+        label = (
+            f"{page.title}, with its findings" if page.findings else page.title
+        )
+        lines = [self._embed(label, page.image)]
+        lines += [
+            f"{md_text(item.title)} ({md_cell_code(item.rule)}), "
+            f"ID: {md_cell_code(item.id)}"
+            for item in page.findings
+        ]
+        return "<br>".join(lines)
 
     def write(self, directory: Path) -> None:
         """Write each thumbnail shown that the directory does not hold yet.
@@ -297,24 +381,29 @@ def render_markdown(
     result: CompareResult | AuditResult,
     path: Path,
     thumbnails: Thumbnails | None = None,
+    screenshots: Screenshots | None = None,
 ) -> Path:
-    """Write the Markdown report of a comparison or an audit, and thumbnails.
+    """Write the Markdown report of a comparison or an audit, and its images.
 
     Args:
         result: Result of a comparison or of an audit.
         path: Report file to write.
         thumbnails: Thumbnails of the sides of the findings, shared with the
             other report; ``None`` for thumbnails of this report only.
+        screenshots: Screenshots of the sides of the findings, shared with
+            the other report; ``None`` for no screenshots.
 
     Returns:
-        The written file. The thumbnails that it shows are in `ASSETS_DIR`,
-        next to it.
+        The written file. The thumbnails and the screenshots that it shows
+        are in `ASSETS_DIR`, next to it.
     """
     if thumbnails is None:
         with Thumbnails(result) as own:
-            return render_markdown(result, path, own)
+            return render_markdown(result, path, own, screenshots)
+    if screenshots is None:
+        screenshots = Screenshots(result, enabled=False)
     context = ReportContext(result, path.parent)
-    assets = _Assets(thumbnails, context.columns)
+    assets = _Assets(thumbnails, screenshots, context.columns)
     inputs = [
         (label, tuple(map(md_cell_code if label == "Path" else _plain, row)))
         for label, row in context.inputs()
@@ -348,6 +437,11 @@ def render_markdown(
         side_of=side_of,
         cell=_cell,
         image=assets,
+        shot=assets.shot,
+        shot_line=assets.shot_line,
+        screenshot_note=screenshots.note(),
+        rows=screenshots.rows(),
+        page_cell=assets.page_cell,
     )
     assets.write(path.parent / ASSETS_DIR)
     path.write_text(text, encoding="utf-8", newline="\n")

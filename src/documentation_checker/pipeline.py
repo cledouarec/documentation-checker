@@ -21,6 +21,7 @@ from documentation_checker.extract import detect_format, load_document
 from documentation_checker.report.context import Thumbnails
 from documentation_checker.report.html import render_html
 from documentation_checker.report.markdown import render_markdown
+from documentation_checker.report.screenshots import Screenshots
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
@@ -325,7 +326,10 @@ def _render_reports(
     result: CompareResult | AuditResult,
     cfg: Config,
 ) -> list[Path]:
-    """Write the reports of the formats of a run, with shared thumbnails.
+    """Write the reports of the formats of a run, with shared images.
+
+    The thumbnails and the screenshots, if the configuration asks for them,
+    are made once for both reports.
 
     Args:
         result: Comparison or audit result.
@@ -336,13 +340,20 @@ def _render_reports(
     """
     cfg.output.mkdir(parents=True, exist_ok=True)
     written = []
+    screenshots = Screenshots(
+        result,
+        enabled=cfg.screenshots,
+        limit=cfg.screenshots_max,
+    )
     with Thumbnails(result) as thumbnails:
         if "html" in cfg.formats:
             html = cfg.output / "report.html"
-            written.append(render_html(result, html, thumbnails))
+            written.append(render_html(result, html, thumbnails, screenshots))
         if "md" in cfg.formats:
             markdown = cfg.output / "report.md"
-            written.append(render_markdown(result, markdown, thumbnails))
+            written.append(
+                render_markdown(result, markdown, thumbnails, screenshots),
+            )
     return written
 
 

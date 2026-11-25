@@ -5,8 +5,10 @@ The report is one file that opens from the disk: its style sheet and its
 script are inline, and a content security policy lets them run, but nothing
 else. The texts of the documents are escaped, and no URL of a document ever
 becomes the target of a link or the source of a resource. The only images are
-the WebP thumbnails that Pillow encodes again, in data URLs; an SVG is never
-written.
+the WebP thumbnails and screenshots that Pillow encodes again, in data URLs;
+an SVG is never written. Each page that the screenshots show is in the report
+once, in its Pages section, beside the page of the other document that
+matches it: the findings on the page link to it, and it links to them.
 """
 
 import base64
@@ -22,15 +24,18 @@ from documentation_checker.report.context import (
     TEMPLATES,
     ReportContext,
     Thumbnails,
+    counted,
     is_code,
     side_of,
 )
+from documentation_checker.report.screenshots import Screenshots
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from documentation_checker.audit.engine import AuditResult
     from documentation_checker.compare.engine import CompareResult
+    from documentation_checker.model.findings import Finding
 
 
 def _hash_source(text: str) -> str:
@@ -75,26 +80,41 @@ class _DomIds:
     def __init__(self) -> None:
         """Start with no identifier given out."""
         self._given: Counter[str] = Counter()
+        self._first: dict[int, str] = {}
 
-    def __call__(self, finding_id: str) -> str:
+    def __call__(self, finding: Finding) -> str:
         """Return the next DOM identifier of a finding.
 
         Args:
-            finding_id: Identifier of the finding, which identical findings
-                share.
+            finding: The finding, or an occurrence of a group, whose
+                identifier identical findings share.
 
         Returns:
             ``f-{id}`` the first time, then ``f-{id}-2``, ``f-{id}-3``...
         """
-        self._given[finding_id] += 1
-        count = self._given[finding_id]
-        return f"f-{finding_id}" if count == 1 else f"f-{finding_id}-{count}"
+        self._given[finding.id] += 1
+        count = self._given[finding.id]
+        given = f"f-{finding.id}" if count == 1 else f"f-{finding.id}-{count}"
+        self._first.setdefault(id(finding), given)
+        return given
+
+    def of(self, finding: Finding) -> str | None:
+        """Return the DOM identifier first given to a finding, if any.
+
+        Args:
+            finding: The finding, or an occurrence of a group.
+
+        Returns:
+            The identifier, ``None`` if the report has not shown it yet.
+        """
+        return self._first.get(id(finding))
 
 
 def render_html(
     result: CompareResult | AuditResult,
     path: Path,
     thumbnails: Thumbnails | None = None,
+    screenshots: Screenshots | None = None,
 ) -> Path:
     """Write the standalone HTML report of a comparison or of an audit.
 
@@ -103,18 +123,25 @@ def render_html(
         path: Report file to write.
         thumbnails: Thumbnails of the sides of the findings, shared with the
             other report; ``None`` for thumbnails of this report only.
+        screenshots: Screenshots of the sides of the findings, shared with
+            the other report; ``None`` for no screenshots.
 
     Returns:
         The written file.
     """
     if thumbnails is None:
         with Thumbnails(result) as own:
-            return render_html(result, path, own)
+            return render_html(result, path, own, screenshots)
+    if screenshots is None:
+        screenshots = Screenshots(result, enabled=False)
     context = ReportContext(result, path.parent)
     css = _asset("report.css")
     script = _asset("report.js")
     severities = sorted(Severity, reverse=True)
-    text = TEMPLATES.get_template("report.html.j2").render(
+    dom_ids = _DomIds()
+    # The report is written as the template makes it: the data URLs of the
+    # images can make it large.
+    chunks = TEMPLATES.get_template("report.html.j2").generate(
         policy=content_security_policy(css, script),
         css=css,
         script=script,
@@ -146,7 +173,14 @@ def render_html(
         hidden=context.hidden,
         is_code=is_code,
         thumbnail=thumbnails.get,
-        dom_id=_DomIds(),
+        screenshot=screenshots.get,
+        page_shot=screenshots.page,
+        screenshot_note=screenshots.note(),
+        rows=screenshots.rows(),
+        counted=counted,
+        dom_id=dom_ids,
+        target=dom_ids.of,
     )
-    path.write_text(text, encoding="utf-8", newline="\n")
+    with path.open("w", encoding="utf-8", newline="\n") as report:
+        report.writelines(chunks)
     return path

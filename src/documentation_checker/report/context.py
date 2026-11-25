@@ -187,6 +187,20 @@ def is_code(finding: Finding) -> bool:
     )
 
 
+def counted(count: int, noun: str) -> str:
+    """Return a number of things, such as ``1 finding`` or ``2 findings``.
+
+    Args:
+        count: The number.
+        noun: The thing, in the singular, which takes an ``s`` in the
+            plural.
+
+    Returns:
+        The number and the noun, in the singular for 1 only.
+    """
+    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
+
+
 def report_order(findings: Sequence[Finding]) -> list[Finding]:
     """Return findings in the order of the reports.
 

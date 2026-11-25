@@ -106,12 +106,15 @@ td {
 
 .matched,
 .checks,
+.shots,
 .none,
 .shown,
 .where,
 .id,
 .more,
 .absent,
+.page-link,
+.on-page code,
 .side h4 {
   color: var(--muted);
 }
@@ -170,25 +173,39 @@ td {
   margin: 0 0 0 auto;
 }
 
-section.severity > h2 {
+section.severity > h2,
+#pages > h2 {
   margin: 1.5rem 0 0.5rem;
   padding-bottom: 0.25rem;
-  border-bottom: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent, var(--border));
 }
 
-article.finding {
+article.finding,
+article.page {
   content-visibility: auto;
-  contain-intrinsic-size: auto 12em;
   margin: 0.75rem 0;
   padding: 0.5rem 1rem;
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
   border-radius: 6px;
 }
 
-article.finding h3 {
+article.finding {
+  contain-intrinsic-size: auto 12em;
+  border-left: 4px solid var(--accent);
+}
+
+article.page {
+  contain-intrinsic-size: auto 85em;
+}
+
+article.finding h3,
+article.page h3 {
   margin: 0.25rem 0;
   font-size: 1rem;
+}
+
+article.page h3 {
+  margin-bottom: 0.5rem;
 }
 
 article.finding h3 code {
@@ -244,13 +261,36 @@ article.finding h3 code {
   padding: 0.4rem 0.6rem;
 }
 
-.thumb {
+.thumb,
+.shot,
+.page-shot {
   display: block;
   max-width: 100%;
   height: auto;
   margin: 0.25rem 0;
   border: 1px solid var(--border);
   background: #ffffff;
+}
+
+.shot {
+  margin: 0.5rem 0 0;
+}
+
+.page-link {
+  margin: 0.25rem 0 0;
+  font-size: 0.9em;
+}
+
+.on-page {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.on-page li {
+  margin: 0 0 0.35rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid var(--accent);
 }
 
 del {

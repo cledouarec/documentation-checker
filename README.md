@@ -70,9 +70,13 @@ The command prints a summary and writes two reports in the output directory:
   access. It has filters by severity, category and rule, a search box and a
   side-by-side view of the reference and new texts. The findings on images
   show thumbnails of the images, except SVGs, which are never rasterized.
+  With `--screenshots`, the findings of PDF documents also show the place of
+  their change, zoomed, before and after, and the report shows each of their
+  pages with all its findings, as described in [Screenshots](#screenshots).
 - `report.md` lists the findings by severity, then by category, with the
   reference and new texts side by side. Changed code is shown as a diff. The
-  thumbnails of the images are written in `report_assets/`, next to it.
+  thumbnails of the images, and the screenshots, are written in
+  `report_assets/`, next to it.
 
 `--format html,md` is the default. Use `--format md` to write only the
 Markdown report.
@@ -104,6 +108,9 @@ The options of `compare`:
 - `--format html,md`: report files to write, `html`, `md` or both.
 - `--words FILE`: personal words that the dictionaries should know, one per
   line, as described in [Text checks](#text-checks). It can be repeated.
+- `--screenshots`: zoom on the change of each finding of PDF documents, and
+  show each of their pages with all its findings, as described in
+  [Screenshots](#screenshots).
 
 `extract` takes those that tell how to read a document: `--config` (`-c`),
 `--lang`, `--content-selector`, `--exclude`, `--no-images` and
@@ -293,8 +300,8 @@ as they are. No audit rule is critical by default.
 
 The audit takes the options of `compare` except `--ignore-moves`:
 `--output` (`-o`), `--format`, `--min-severity`, `--disable`, `--words`,
-`--config` (`-c`), `--lang`, `--content-selector`, `--exclude`,
-`--no-images` and `--pdf-tables`. It has three of its own:
+`--screenshots`, `--config` (`-c`), `--lang`, `--content-selector`,
+`--exclude`, `--no-images` and `--pdf-tables`. It has three of its own:
 
 - `--checks LIST`: comma separated families of checks to run, all of them
   by default: `structure` (headings, references, captions, pages and
@@ -898,6 +905,96 @@ the command: 374 MB together. On a crafted PDF, the reading may spend a few
 seconds per page before it stops, with a warning; the document is then read
 without its tables.
 
+#### Screenshots
+
+`--screenshots`, or `screenshots = true` in the `[general]` section of the
+configuration, adds two kinds of screenshots to the reports of PDF
+documents:
+
+- under the text of each finding, a zoom on the place of its change: the
+  lines that it marks, across their blocks, with about two lines of the page
+  above and under them, none of them cut. `compare` shows the place in the
+  reference and in the new document side by side, `audit` in the document.
+  A link under each zoom leads to its page;
+- after the findings, a Pages section shows the pages that the findings
+  point at, each one once and whole, with the marks of all of them, so that
+  the changes are seen in their context. Each page lists its findings, with
+  a link to each of them. `compare` shows the pages side by side, in the
+  order of the documents: each page of the reference beside the page of the
+  new document that matches it.
+
+The texts and their diff stay as they are. The screenshots are turned
+upright, as the page is read: a landscape page shows as a viewer shows it,
+and a table set sideways on a page that is not turned shows upright. On the
+zooms and on the pages:
+
+- the words that changed are tinted and bordered, in red in the reference
+  and in green in the new document, as the reports color the texts; the part
+  of the text that a finding of `audit` points at is tinted in yellow, and so
+  is the whole block that it points at, if it points at no part;
+- where words were removed, a caret marks the place in the document that no
+  longer has them;
+- a missing or an added block is tinted whole;
+- a block whose text is kept, but that moved, was split or merged, or lost
+  or changed its kind or its level, such as a list lost, is tinted whole in
+  blue;
+- the blocks whose changed words are not found on the page are framed in the
+  color of their change.
+
+The pages are matched one to one, in the order of both documents: first so
+that the two sides of as many findings as can be face each other, then so
+that the pages side by side share the most text, as the comparison matched
+their blocks, the text of a block over two pages shared out between them as
+its lines are. A page beside its match is shown even if no finding marks it:
+beside the page of a removed paragraph, the page where it was is seen
+without it. A page that matches no page of the other document is shown
+beside such a page that falls between the same pages, if there is one, else
+alone.
+
+The changed words are looked for among the characters of their blocks, by
+their letters and digits only: blanks, punctuation, accents, ligatures and
+line-end hyphens do not stop them from being found. They are found with the
+text that the finding quotes around them, or alone when they are found once
+only, with three letters or digits at least. A side shows one page: that of
+the changed words, else that of the first line of its blocks.
+
+Every finding of a PDF document gets its zooms, and so does each occurrence
+that a group lists. `screenshots_max` in the `[general]` section limits them
+to that number of findings, the first ones in the order of the reports, each
+occurrence counting as one: the pages show the marks of these findings only,
+and the reports say how many have none. A zoom is rendered at 144 DPI, 300
+points wide at least, and a page at 108 DPI, both less so that no side has
+more than 2,048 pixels. They are encoded in lossless WebP: about 8 to 25
+kilobytes for a zoom of a few lines of A4 text, and 45 to 85 kilobytes for a
+page. The screenshots are inline in `report.html`, which a comparison with
+many findings makes large, as [Performance](#performance) measures it.
+
+The screenshots are only made for PDF documents: the option leaves the
+reports of HTML builds as they are. The findings on images keep their
+thumbnails and get no screenshot, and so do the findings that point at a
+whole page, such as `a11y.scanned_page`.
+
+Known limits:
+
+- The changed words are looked for in the order in which PDFium reads the
+  characters of the page. A block whose characters PDFium reads in another
+  order, such as a table read column by column, or whose text has no Unicode
+  mapping, is framed instead.
+- A side shows one page, in its zoom and in the Pages section: the part of a
+  block on another page is left out.
+- The pages are matched one to one: when the new document lays out the text
+  of a page of the reference over two pages, or the reverse, only one of
+  them is beside it.
+- A block that lies outside its page, as the text of a figure larger than
+  the page may, has no zoom; its page is shown, without its marks.
+- A PDF changed or removed since it was read gives no screenshot.
+- `--no-images` leaves the images out of the comparison, not out of the
+  screenshots, which show the page as it is.
+- Before PDFium renders a page or a zoom, the image objects that it may
+  decode there are checked, as for the vector figures. A page with an image
+  that the checks refuse, such as an image too large to be read, is not
+  shown, and neither is a zoom over that image.
+
 ### Performance
 
 These figures were measured on a laptop with an Intel Core Ultra 7 265U
@@ -915,9 +1012,21 @@ a typo.
 | `extract` of the PGF manual (PDF, 1,323 pages) | 35 s | 170 MB |
 | `audit` of the PGF manual | 41 s: extraction 37 s, text 3.6 s | 380 MB |
 | `compare` of the PGF manual and its copy | 43 s; in one process 77 s: extraction 35 s and 36 s, comparison 2.9 s, reports 1.3 s | 470 MB; in one process 340 MB |
+| `compare --screenshots` of the PGF manual and its copy | 100 s; in one process 132 s: extraction 38 s and 38 s, comparison 3.4 s, reports 53 s | 1.1 GB; in one process 1.0 GB |
 | `audit` of the git manual (HTML, 259 pages) | 8.1 s: extraction 2.5 s, text 5.2 s | 280 MB |
 | `audit` of the git manual four times (1,036 pages) | 28 s: extraction 10 s, text 17 s | 600 MB |
 | `compare` of the git manual and its copy | 4.9 s; in one process 6.0 s: extraction 2.0 s and 1.9 s, comparison 1.5 s, reports 0.3 s | 520 MB; in one process 220 MB |
+
+With `--screenshots`, the 7,004 findings of the PGF manual and its copy get
+14,396 zooms, and the 2,372 pages that they point at are shown once each, side
+by side in 1,187 rows: `report.html` grows from 8 MB to 524 MB, and
+`report_assets/` holds 377 MB of them for `report.md`, 217 MB of zooms and
+160 MB of pages. The screenshots stay in memory until both reports are
+written, which makes most of the peak memory; `screenshots_max` keeps the
+reports of such a comparison smaller. Keeping where the blocks lie costs the
+extraction no time and about 13 MB. PDFium renders each zoom, and each page
+once, in one thread, and the screenshots are marked and encoded in a thread
+for each processor.
 
 `compare` reads its two inputs in two processes when each one has 1 MB or
 more: a PDF file or a single HTML page by its size, a site by the sum of its
@@ -962,6 +1071,8 @@ min_severity = "minor"
 output = "documentation-checker-report"
 formats = ["html", "md"]
 images = true        # extract and compare the images
+screenshots = false  # zoom on the findings of PDFs, and show their pages
+screenshots_max = 200  # most findings with screenshots; all when absent
 
 [html]
 profile = "auto"     # or the name of a profile, such as "sphinx"

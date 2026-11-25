@@ -8,10 +8,15 @@ import pytest
 
 from documentation_checker.compare.align import Pair, PairKind
 from documentation_checker.compare.pages import heaviest_chain, page_links
+from documentation_checker.config import Config
 from documentation_checker.model.document import PageBox, SourceRef
+from documentation_checker.pipeline import run_compare
 from tests.builders import make_block
+from tests.pdf_builders import build_lines_pdf
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from documentation_checker.model.document import Block
 
 
@@ -88,3 +93,23 @@ def test_a_block_over_pages_links_them_by_the_heights_of_its_boxes() -> None:
     # Most of the block is on the first page of the reference and on the
     # third page of the new document.
     assert heaviest_chain(links) == ((1, 3),)
+
+
+@pytest.mark.parametrize(
+    ("screenshots", "links"),
+    [(True, {(1, 1), (1, 2), (2, 1), (2, 2)}), (False, {(1, 1)})],
+    ids=["boxes", "pages"],
+)
+def test_a_comparison_links_its_pages(
+    tmp_path: Path,
+    *,
+    screenshots: bool,
+    links: set[tuple[int, int]],
+) -> None:
+    """A paragraph over two pages links them, if the boxes tell where."""
+    lines = [f"line {i} of the long paragraph" for i in range(100)]
+    ref = build_lines_pdf([lines], tmp_path / "ref.pdf")
+    new = build_lines_pdf([lines], tmp_path / "new.pdf")
+    result = run_compare(ref, new, Config(screenshots=screenshots))
+    assert set(result.page_links) == links
+    assert heaviest_chain(result.page_links)[0] == (1, 1)
