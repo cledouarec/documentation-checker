@@ -23,6 +23,27 @@ type Box = tuple[float, float, float, float]
 type PageObject = pdfium_c.FPDF_PAGEOBJECT
 
 
+def boxes_meet(one: Box, other: Box) -> bool:
+    """Tell whether two boxes meet, their edges included.
+
+    Args:
+        one: The left, bottom, right and top edges of a box.
+        other: Those of another box, in the same coordinates.
+
+    Returns:
+        False only for boxes known to lie apart: edges that are not numbers
+        never set them apart.
+    """
+    left, bottom, right, top = one
+    other_left, other_bottom, other_right, other_top = other
+    return not (
+        right < other_left
+        or left > other_right
+        or top < other_bottom
+        or bottom > other_top
+    )
+
+
 def object_bounds(obj: PageObject) -> Box | None:
     """Return the bounds of a page object, in the space of its container.
 
