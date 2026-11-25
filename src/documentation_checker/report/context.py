@@ -10,6 +10,8 @@ makes the thumbnails that both show.
 import os
 import urllib.parse
 from dataclasses import dataclass
+from itertools import groupby
+from operator import attrgetter
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Final, Literal, Self
 
@@ -27,7 +29,7 @@ from documentation_checker.model.document import BlockKind
 from documentation_checker.model.findings import Category, Severity
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
     from pathlib import Path
     from types import TracebackType
 
@@ -182,6 +184,24 @@ def is_code(finding: Finding) -> bool:
     return any(
         side is not None and side.kind is BlockKind.CODE
         for side in (finding.ref, finding.new)
+    )
+
+
+def report_order(findings: Sequence[Finding]) -> list[Finding]:
+    """Return findings in the order of the reports.
+
+    Args:
+        findings: Findings, in document order.
+
+    Returns:
+        The findings by severity, from the highest, then by category, in the
+        order of `Category`, then in document order, as
+        `ReportContext.sections` lists them.
+    """
+    ranks = {category: rank for rank, category in enumerate(Category)}
+    return sorted(
+        findings,
+        key=lambda finding: (-finding.severity, ranks[finding.category]),
     )
 
 
@@ -469,21 +489,26 @@ class ReportContext:
         """Return the findings by severity, then by category.
 
         Returns:
-            The severities from the highest to the lowest, each with its
-            categories in the order of `Category` and the findings of each
-            in document order. Empty severities and categories are left out.
+            The findings in the order of `report_order`, cut by severity, from
+            the highest to the lowest, then by category, in the order of
+            `Category`. Empty severities and categories are left out.
         """
-        sections = []
-        for severity in sorted(Severity, reverse=True):
-            findings = self.findings_of(severity)
-            by_category = [
-                (category, group)
-                for category in Category
-                if (group := [f for f in findings if f.category is category])
-            ]
-            if by_category:
-                sections.append((severity, by_category))
-        return sections
+        return [
+            (
+                severity,
+                [
+                    (category, list(group))
+                    for category, group in groupby(
+                        findings,
+                        key=attrgetter("category"),
+                    )
+                ],
+            )
+            for severity, findings in groupby(
+                report_order(self.result.findings),
+                key=attrgetter("severity"),
+            )
+        ]
 
     def source(
         self,
