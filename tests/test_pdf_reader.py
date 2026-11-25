@@ -58,9 +58,11 @@ from tests.image_builders import (
     jpx_of_components,
 )
 from tests.pdf_builders import (
+    TEXT_TURNS,
     build_fpdf2_pdf,
     build_image_stream_pdf,
     build_lines_pdf,
+    build_moved_turned_pdf,
     build_outline_pdf,
     build_oversized_image_pdf,
     build_raw_pdf,
@@ -487,13 +489,9 @@ def test_geometry_ignores_the_rotation(tmp_path: Path) -> None:
     assert after.chars == before.chars
 
 
-# The matrices that turn the text of a 300 by 400 page by each quarter turn,
-# with the rotation that turns the page upright in a viewer.
 TURNS = [
-    pytest.param("1 0 0 1 0 0", 0, id="upright"),
-    pytest.param("0 -1 1 0 0 400", 270, id="quarter"),
-    pytest.param("-1 0 0 -1 300 400", 180, id="half"),
-    pytest.param("0 1 -1 0 300 0", 90, id="three-quarters"),
+    pytest.param(matrix, rotation, id=name)
+    for matrix, rotation, name in TEXT_TURNS
 ]
 
 
@@ -537,19 +535,11 @@ def test_turned_pages_are_read_from_their_crop_box(
     rotation: int,
 ) -> None:
     """A turned page is read from the corner of its crop box."""
-    # The crop box is the 300 by 400 page of the matrices, moved by 50, 60.
-    content = (
-        f"q 1 0 0 1 50 60 cm {matrix} cm "
-        "BT /F1 10 Tf 40 250 Td (First line) Tj "
-        "0 -12 Td (Second line) Tj ET Q"
-    )
-    path = build_single_page_pdf(
+    path = build_moved_turned_pdf(
         tmp_path / "cropped.pdf",
-        content,
-        page=(
-            "/MediaBox [0 0 400 500] /CropBox [50 60 350 460] "
-            f"/Rotate {rotation}"
-        ),
+        matrix,
+        ["First line", "Second line"],
+        rotation=rotation,
     )
     with open_pdf(path) as pdf:
         page = read_page(pdf, 0)

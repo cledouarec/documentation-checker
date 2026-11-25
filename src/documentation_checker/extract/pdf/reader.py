@@ -35,6 +35,7 @@ import pypdfium2.raw as pdfium_c
 
 from documentation_checker.errors import InputError
 from documentation_checker.extract.pdf.figures import search_figures
+from documentation_checker.images.frames import QUARTER, QUARTERS, to_upright
 from documentation_checker.images.load import (
     RenderGuard,
     decode_object,
@@ -149,8 +150,6 @@ _RAW_FORMAT: Final = "raw"
 _FORMAT_LIMIT: Final = 20  # Most characters of the format of another filter.
 _FILTER_SEPARATOR: Final = "\x1f"  # Joins the filters that the digest reads.
 _FULL_TURN: Final = 360.0  # Degrees in a full turn.
-_QUARTER_TURN: Final = 90.0  # Degrees in a quarter turn.
-_QUARTERS: Final = 4  # Quarter turns in a full turn.
 _FLIPPED: Final = 2  # Quarter turns that a negative font size adds.
 _VECTOR_FORMAT: Final = "vector"  # The format of a vector figure.
 # The text of a link is read up to these UTF-16 units, enough for
@@ -587,12 +586,12 @@ def _turn(textpage: pdfium.PdfTextPage, index: int) -> int | None:
         # (a, -b).
         radians = math.atan2(-matrix.b, matrix.a)
     degrees = math.degrees(radians) % _FULL_TURN
-    quarters = round(degrees / _QUARTER_TURN)
-    if abs(degrees - quarters * _QUARTER_TURN) > TURN_TOLERANCE:
+    quarters = round(degrees / QUARTER)
+    if abs(degrees - quarters * QUARTER) > TURN_TOLERANCE:
         return None
     if pdfium_c.FPDFText_GetFontSize(textpage, index) < 0:
         quarters += _FLIPPED
-    return quarters % _QUARTERS
+    return quarters % QUARTERS
 
 
 def _effective_size(textpage: pdfium.PdfTextPage, index: int) -> float:
@@ -979,37 +978,6 @@ def _page_matrix(image: pdfium.PdfImage) -> pdfium.PdfMatrix:
     return matrix
 
 
-def _upright_box(
-    box: tuple[float, float, float, float],
-    turn: int,
-    size: tuple[float, float],
-) -> tuple[float, float, float, float]:
-    """Return where a box is once its page is turned upright, as `_upright`.
-
-    Args:
-        box: The left, bottom, right and top edges of the box, from the lower
-            left corner of the crop box.
-        turn: The quarter turns, clockwise, of the text of the page.
-        size: The width and the height of the crop box.
-
-    Returns:
-        The left, right, bottom and top edges of the box, from the lower left
-        corner of the crop box turned so that the text of the page runs from
-        left to right.
-    """
-    left, bottom, right, top = box
-    width, height = size
-    match turn:
-        case 0:
-            return left, right, bottom, top
-        case 1:
-            return height - top, height - bottom, left, right
-        case 2:
-            return width - right, width - left, height - top, height - bottom
-        case _:
-            return bottom, top, width - right, width - left
-
-
 def _image_format(filters: Sequence[str]) -> str:
     """Return the format of an image, by the last filter of its stream.
 
@@ -1178,20 +1146,9 @@ def _pdf_image(
     Returns:
         The image.
     """
-    left, bottom, right, top = crop
-    x0, y0, x1, y1 = matrix.on_rect(0, 0, 1, 1)
-    box = _upright_box(
-        (x0 - left, y0 - bottom, x1 - left, y1 - bottom),
-        turn,
-        (right - left, top - bottom),
-    )
-    ref = _image_ref(
-        image,
-        matrix,
-        place=place,
-        shown=(box[1] - box[0], box[3] - box[2]),
-    )
-    return PdfImage(ref, *box)
+    x0, bottom, x1, top = to_upright(matrix.on_rect(0, 0, 1, 1), crop, turn)
+    ref = _image_ref(image, matrix, place=place, shown=(x1 - x0, top - bottom))
+    return PdfImage(ref, x0, x1, bottom, top)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1262,36 +1219,6 @@ def _figure_ref(
     )
 
 
-def _figure_box(
-    page: pdfium.PdfPage,
-    figure: VectorFigure,
-    turn: int,
-) -> tuple[float, float, float, float]:
-    """Return the box of a vector figure on its page turned upright.
-
-    Args:
-        page: The page.
-        figure: The figure.
-        turn: The quarter turns, clockwise, of the text of the page.
-
-    Returns:
-        The left, right, bottom and top edges of the box, as `_upright_box`
-        returns them.
-    """
-    left, bottom, right, top = figure.box
-    crop_left, crop_bottom, crop_right, crop_top = page.get_bbox()
-    return _upright_box(
-        (
-            left - crop_left,
-            bottom - crop_bottom,
-            right - crop_left,
-            top - crop_bottom,
-        ),
-        turn,
-        (crop_right - crop_left, crop_top - crop_bottom),
-    )
-
-
 def _figure_image(
     page: pdfium.PdfPage,
     figure: VectorFigure,
@@ -1311,10 +1238,17 @@ def _figure_image(
             to render the figure.
 
     Returns:
-        The figure, as `_figure_ref` reads it, in the box of `_figure_box`.
+        The figure, as `_figure_ref` reads it, in its box on the page turned
+        upright.
     """
-    box = _figure_box(page, figure, turn)
-    return PdfImage(_figure_ref(page, figure, place, guard), *box)
+    x0, bottom, x1, top = to_upright(figure.box, page.get_bbox(), turn)
+    return PdfImage(
+        _figure_ref(page, figure, place, guard),
+        x0,
+        x1,
+        bottom,
+        top,
+    )
 
 
 def _figure_images(
@@ -1837,10 +1771,8 @@ def _read_open_page(
         unrendered=max(0, len(figures) - MAX_PAGE_FIGURES) if images else 0,
         turn=upright.turn,
         figure_boxes=tuple(
-            (x0, low, x1, high)
-            for x0, x1, low, high in (
-                _figure_box(page, figure, upright.turn) for figure in figures
-            )
+            to_upright(figure.box, (left, bottom, right, top), upright.turn)
+            for figure in figures
         ),
         crowded=crowded,
     )
