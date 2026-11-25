@@ -4612,3 +4612,50 @@ def make_line(  # ruff: ignore[too-many-arguments] - one keyword per attribute o
         mono=mono,
         bold=bold,
     )
+
+
+# The matrices that turn the text of a page of 300 by 400 points by each
+# quarter turn, with the rotation that turns the page upright in a viewer,
+# and a name for each.
+TEXT_TURNS: Final = (
+    ("1 0 0 1 0 0", 0, "upright"),
+    ("0 -1 1 0 0 400", 270, "quarter"),
+    ("-1 0 0 -1 300 400", 180, "half"),
+    ("0 1 -1 0 300 0", 90, "three-quarters"),
+)
+
+
+def build_moved_turned_pdf(
+    out: Path,
+    matrix: str,
+    lines: Sequence[str],
+    *,
+    rotation: int,
+) -> Path:
+    """Write a page of `TEXT_TURNS`, moved by 50, 60 into a larger media box.
+
+    The crop box is the page of 300 by 400 points, so that the corner of the
+    crop box counts. The lines are in Helvetica 10, from 40, 250 on the page
+    before it is turned, a line every 12 points.
+
+    Args:
+        out: The PDF file to write.
+        matrix: A matrix of `TEXT_TURNS`, which turns the text.
+        lines: The lines of text, without parentheses.
+        rotation: The rotation of the page, in degrees.
+
+    Returns:
+        The PDF file.
+    """
+    shown = " 0 -12 Td ".join(f"({line}) Tj" for line in lines)
+    content = (
+        f"q 1 0 0 1 50 60 cm {matrix} cm BT /F1 10 Tf 40 250 Td {shown} ET Q"
+    )
+    return build_single_page_pdf(
+        out,
+        content,
+        page=(
+            "/MediaBox [0 0 400 500] /CropBox [50 60 350 460] "
+            f"/Rotate {rotation}"
+        ),
+    )
