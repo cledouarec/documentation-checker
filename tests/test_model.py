@@ -8,12 +8,15 @@ from typing import TYPE_CHECKING
 import pytest
 
 from documentation_checker.model.document import (
+    Block,
     BlockKind,
     Document,
     ImageRef,
+    PageBox,
     PixelSource,
     SourceRef,
     carry_anchors,
+    joined_source,
 )
 from documentation_checker.model.findings import (
     Category,
@@ -278,3 +281,52 @@ def test_blocks_and_documents_have_no_code_by_default() -> None:
     """Inline code spans and monospaced words are empty by default."""
     assert make_block("x y").code_spans == ()
     assert make_document(make_block("x y")).code_words == frozenset()
+
+
+BOX = PageBox(2, 72.0, 600.0, 520.0, 640.0)
+OTHER_BOX = PageBox(3, 72.0, 700.0, 520.0, 760.0, turn=1)
+
+
+def test_the_boxes_of_a_source_leave_it_equal() -> None:
+    """Two sources that differ by their boxes alone are equal and alike."""
+    plain = SourceRef("doc.pdf", page=3)
+    boxed = SourceRef("doc.pdf", page=3, boxes=(BOX,))
+    assert boxed == plain
+    assert hash(boxed) == hash(plain)
+    assert repr(boxed) == repr(plain)
+
+
+def test_the_boxes_of_a_side_leave_its_identifier() -> None:
+    """The identifier of a finding does not depend on the boxes."""
+    segments = (DiffSegment("delete", "word"),)
+    plain = Side(SourceRef("doc.pdf", page=3), segments)
+    boxed = Side(SourceRef("doc.pdf", page=3, boxes=(BOX,)), segments)
+    assert finding_id("text.typo", boxed, None) == finding_id(
+        "text.typo",
+        plain,
+        None,
+    )
+
+
+def test_page_box_edges() -> None:
+    """The edges of a box are its left, bottom, right and top."""
+    assert BOX.edges == (72.0, 600.0, 520.0, 640.0)
+
+
+def _located(page: int, *boxes: PageBox) -> Block:
+    """Return a block of a page of a PDF, with boxes."""
+    source = SourceRef("doc.pdf", page=page, boxes=boxes)
+    return replace(make_block("Some text."), source=source)
+
+
+def test_joined_source_keeps_the_first_with_all_the_boxes() -> None:
+    """The joined source is that of the first block, with all the boxes."""
+    joined = joined_source([_located(3, BOX), _located(4, OTHER_BOX)])
+    assert (joined.page, joined.boxes) == (3, (BOX, OTHER_BOX))
+
+
+def test_joined_source_without_other_boxes_is_the_first() -> None:
+    """Without boxes after the first block, its source is returned as is."""
+    first = _located(3, BOX)
+    assert joined_source([first, _located(4)]) is first.source
+    assert joined_source([first]) is first.source

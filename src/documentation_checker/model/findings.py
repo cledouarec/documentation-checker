@@ -78,7 +78,8 @@ class Side:
     """One side of a finding: where it is and what the text looks like.
 
     Attributes:
-        source: Where the first block of the side comes from.
+        source: Where the first block of the side comes from, with the
+            boxes of all the blocks of the side, if they have any.
         segments: The text, cut into unchanged, deleted and inserted pieces.
         kind: Kind of the first block of the side, if known.
         image: Image of the first block of the side, if it is an image.

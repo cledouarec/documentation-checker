@@ -8,11 +8,12 @@ import pytest
 
 from documentation_checker.extract.pdf.blocks import (
     group_lines,
+    line_boxes,
     merge_flows,
     paragraph_pitches,
     strip_list_marker,
 )
-from documentation_checker.model.document import BlockKind
+from documentation_checker.model.document import BlockKind, PageBox
 from tests.pdf_builders import make_line
 
 if TYPE_CHECKING:
@@ -857,3 +858,43 @@ def test_strip_list_marker(
 ) -> None:
     """The bullet or the number of a list item is removed and named."""
     assert strip_list_marker(text) == expected
+
+
+def test_line_boxes_hold_the_lines_of_a_flow() -> None:
+    """The lines of a flow down a page make one box, with their heights."""
+    lines = [
+        make_line("first", 700, width=100),
+        make_line("second", 688, x0=60, width=150),
+    ]
+    assert line_boxes(lines, (0,)) == (PageBox(0, 60.0, 685.5, 210.0, 708.5),)
+
+
+def test_line_boxes_start_a_box_on_each_page() -> None:
+    """A line on another page starts another box, with the turn of its page."""
+    lines = [
+        make_line("end", 80, width=100, page=2),
+        make_line("start", 760, width=100, page=3),
+    ]
+    assert line_boxes(lines, (0, 0, 0, 3)) == (
+        PageBox(2, 72.0, 77.5, 172.0, 88.5),
+        PageBox(3, 72.0, 757.5, 172.0, 768.5, turn=3),
+    )
+
+
+def test_line_boxes_start_a_box_on_each_column() -> None:
+    """A line that opens a column starts another box."""
+    lines = [
+        make_line("left", 100, width=100),
+        make_line("right", 700, x0=300, width=100),
+        make_line("same", 700, x0=420, width=50),
+    ]
+    assert line_boxes(lines, (0,)) == (
+        PageBox(0, 72.0, 97.5, 172.0, 108.5),
+        PageBox(0, 300.0, 697.5, 400.0, 708.5),
+        PageBox(0, 420.0, 697.5, 470.0, 708.5),
+    )
+
+
+def test_line_boxes_of_no_line_are_none() -> None:
+    """A block without lines has no box."""
+    assert line_boxes([], (0,)) == ()

@@ -28,6 +28,7 @@ from itertools import chain, pairwise
 from typing import TYPE_CHECKING, Final, Literal
 
 from documentation_checker.extract.pdf.chrome import page_number
+from documentation_checker.model.document import PageBox
 from documentation_checker.text.numbers import CAPTION_NUMBER
 
 if TYPE_CHECKING:
@@ -142,6 +143,49 @@ def _is_flow_break(previous: Line, line: Line) -> bool:
         or line.x0 > previous.x1
         or line.x1 < previous.x0
     )
+
+
+def _flow_box(flow: Sequence[Line], turns: Sequence[int]) -> PageBox:
+    """Return the box that holds the lines of a flow, on their page."""
+    page = flow[0].page
+    return PageBox(
+        page,
+        min(line.x0 for line in flow),
+        min(line.bottom for line in flow),
+        max(line.x1 for line in flow),
+        max(line.top for line in flow),
+        turns[page],
+    )
+
+
+def line_boxes(
+    lines: Sequence[Line],
+    turns: Sequence[int],
+) -> tuple[PageBox, ...]:
+    """Return the boxes of the flows of some lines, down a page or a column.
+
+    A flow goes on until a line opens a page or a column, as
+    `_is_flow_break` tells; its box holds the boxes of its lines.
+
+    Args:
+        lines: The lines of a block, in reading order.
+        turns: The quarter turns that turned each page of the document
+            upright, as the reader tells them.
+
+    Returns:
+        The box of each flow, in order, in the coordinates of the lines.
+    """
+    boxes: list[PageBox] = []
+    start = 0
+    for index in range(1, len(lines) + 1):
+        if index < len(lines) and not _is_flow_break(
+            lines[index - 1],
+            lines[index],
+        ):
+            continue
+        boxes.append(_flow_box(lines[start:index], turns))
+        start = index
+    return tuple(boxes)
 
 
 def _is_style_change(previous: Line, line: Line) -> bool:

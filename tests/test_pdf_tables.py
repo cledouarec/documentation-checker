@@ -22,6 +22,7 @@ from reportlab.lib.units import mm
 from documentation_checker.config import Config, PdfConfig
 from documentation_checker.errors import ConfigError
 from documentation_checker.extract import load_document
+from documentation_checker.extract.pdf import load_pdf
 from documentation_checker.extract.pdf.figures import MAX_PAGE_PATHS
 from documentation_checker.extract.pdf.reader import open_pdf, read_page
 from documentation_checker.extract.pdf.table_process import read_tables
@@ -1368,3 +1369,19 @@ def test_cells_keep_the_words_of_the_reader_past_an_accent(
     pdf = build_accent_table_pdf(tmp_path / "a.pdf")
     doc = load_document(pdf, TABLES)
     assert _tables(doc) == ["Caf\xe9 long text | value\na | b"]
+
+
+def test_a_table_over_two_pages_has_the_box_of_each_piece(
+    tmp_path: Path,
+) -> None:
+    """With the boxes asked for, a table has the box of each of its pieces."""
+    pdf = build_split_table_pdf(tmp_path / "s.pdf")
+    doc = load_pdf(pdf, PdfConfig(tables=True), lang="auto", boxes=True)
+    (table,) = [b for b in doc.blocks if b.kind is BlockKind.TABLE]
+    boxes = table.source.boxes
+    assert [(box.page, box.turn) for box in boxes] == [(0, 0), (1, 0)]
+    # The table has 2 columns of 100 points.
+    assert [box.x1 - box.x0 for box in boxes] == pytest.approx([200, 200])
+    assert all(box.top > box.bottom for box in boxes)
+    plain = load_document(pdf, TABLES)
+    assert [b.source.boxes for b in plain.blocks] == [()] * len(plain.blocks)

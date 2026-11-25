@@ -27,6 +27,7 @@ from documentation_checker.extract.pdf import table_process, tables
 from documentation_checker.model.document import (
     CELL_SEPARATOR,
     BlockKind,
+    PageBox,
     SourceRef,
 )
 from documentation_checker.text.normalize import normalize_display, strict_key
@@ -84,8 +85,12 @@ class TablePageFacts(Protocol):
     segments: Sequence[Segment]
     chars: int
     figures: Sequence[Box]
-    turned: bool
     crowded: bool
+
+    @property
+    def turned(self) -> bool:
+        """Whether the reader turned the page upright."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -624,6 +629,7 @@ def _table_block(
     *,
     file: str,
     counter: Counter[str],
+    boxes: bool,
 ) -> Placed:
     """Make the block of a table, from its pieces on successive pages.
 
@@ -633,6 +639,9 @@ def _table_block(
         counter: The counts of the normalizations, in which `table_header`
             goes up by one for each piece whose first row, the same as the
             first row of the table, is removed.
+        boxes: Whether the block has the box of each of its pieces. Tables
+            are only read on pages that are not turned, so that their boxes
+            have no turn.
 
     Returns:
         The table block, at the page and the top of its first piece. Its text
@@ -646,22 +655,27 @@ def _table_block(
             counter["table_header"] += 1
         rows += piece.rows[1:] if repeated else piece.rows
     text = "\n".join(CELL_SEPARATOR.join(row) for row in rows)
-    block = normalized_block(
-        BlockKind.TABLE,
-        text,
-        SourceRef(file, page=first.page + 1),
-        counter,
+    source = SourceRef(
+        file,
+        page=first.page + 1,
+        boxes=(
+            tuple(PageBox(piece.page, *piece.box) for piece in pieces)
+            if boxes
+            else ()
+        ),
     )
+    block = normalized_block(BlockKind.TABLE, text, source, counter)
     return Placed(first.page, first.box[3], first.box[0], block, first.box[1])
 
 
-def _table_blocks(
+def _table_blocks(  # ruff: ignore[too-many-arguments] - the boxes of the blocks are asked for apart
     found: Sequence[PdfTable],
     kept: Sequence[Sequence[Segment]],
     images: Sequence[Placed],
     *,
     file: str,
     counter: Counter[str],
+    boxes: bool,
 ) -> list[Placed]:
     """Join the tables continued from page to page, and make their blocks.
 
@@ -671,6 +685,8 @@ def _table_blocks(
         images: The image blocks kept, in the order of `place_order`.
         file: The name of the PDF file, which the blocks point to.
         counter: The counts of the normalizations.
+        boxes: Whether the blocks have the boxes of their pieces, as
+            `_table_block` makes them.
 
     Returns:
         One block for each table and the tables that continue it, as
@@ -686,7 +702,8 @@ def _table_blocks(
         else:
             joined.append([table])
     return [
-        _table_block(pieces, file=file, counter=counter) for pieces in joined
+        _table_block(pieces, file=file, counter=counter, boxes=boxes)
+        for pieces in joined
     ]
 
 
@@ -711,13 +728,14 @@ def flow(
     ]
 
 
-def with_tables(
+def with_tables(  # ruff: ignore[too-many-arguments] - the boxes of the blocks are asked for apart
     images: Sequence[Placed],
     found: KeptTables,
     kept: Sequence[Sequence[Segment]],
     *,
     file: str,
     counter: Counter[str],
+    boxes: bool,
 ) -> list[Placed]:
     """Add the table blocks of a document to its image blocks.
 
@@ -727,6 +745,7 @@ def with_tables(
         kept: The segments of each page, chrome and tables removed.
         file: The name of the PDF file, which the blocks point to.
         counter: The counts of the normalizations.
+        boxes: Whether the table blocks have the boxes of their pieces.
 
     Returns:
         The image and the table blocks, as `_table_blocks` makes the latter,
@@ -740,6 +759,7 @@ def with_tables(
         images,
         file=file,
         counter=counter,
+        boxes=boxes,
     )
     return sorted([*images, *blocks], key=place_order)
 
