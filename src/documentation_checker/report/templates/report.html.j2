@@ -1,5 +1,5 @@
 {% macro segments(side) -%}
-{% for segment in side.segments -%}
+{% for segment in side.segments if segment.text -%}
 {% if segment.op == "delete" %}<del>{{ segment.text }}</del>
 {%- elif segment.op == "insert" %}<ins>{{ segment.text }}</ins>
 {%- elif segment.op == "mark" %}<mark>{{ segment.text }}</mark>

@@ -524,3 +524,22 @@ def test_sides_of_several_blocks_have_the_boxes_of_all() -> None:
         assert [box.page for box in finding.ref.source.boxes] == [0]
         assert [box.page for box in finding.new.source.boxes] == [4, 5]
         assert finding.new.source.page == 5
+
+
+def test_the_side_without_the_changed_words_tells_where_they_were() -> None:
+    """A side that lacks the words of the other keeps an empty change."""
+    text = (
+        "Install the package with the default configuration before you start."
+    )
+    ref = make_document(make_block(text))
+    new = make_document(make_block(text.replace(" default", "")))
+    (finding,) = compare_documents(ref, new, Config()).findings
+    assert finding.ref is not None
+    assert finding.new is not None
+    assert DiffSegment("delete", "default") in finding.ref.segments
+    assert DiffSegment("insert", "") in finding.new.segments
+    assert all(
+        segment.text
+        for segment in finding.new.segments
+        if segment.op == "equal"
+    )
