@@ -257,7 +257,8 @@ def test_compare_pdf_writes_report_with_page_links(tmp_path: Path) -> None:
     args = ["compare", str(ref), str(new), "-o", str(out)]
     result = CliRunner().invoke(main, args)
     assert result.exit_code == 0, result.output
-    assert "CRITICAL text.number_changed  ref.pdf#page=9" in result.output
+    assert "findings: 1 critical, 0 major, 0 minor, 0 info" in result.output
+    assert "text.number_changed" not in result.output
     report = (out / "report.md").read_text(encoding="utf-8")
     assert "[ref.pdf#page=9](../ref.pdf#page=9)" in report
 
