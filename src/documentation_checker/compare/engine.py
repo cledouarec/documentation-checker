@@ -35,7 +35,7 @@ findings of one rule and pattern, once there are five of them, by one group.
 import bisect
 import re
 from collections import Counter
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Final
 
 from documentation_checker.compare.aggregate import (
@@ -61,6 +61,7 @@ from documentation_checker.compare.images import (
     placed_images,
 )
 from documentation_checker.compare.links import link_drafts
+from documentation_checker.compare.pages import page_links
 from documentation_checker.compare.structure import kind_drafts, level_drafts
 from documentation_checker.compare.textdiff import (
     Hunk,
@@ -95,7 +96,7 @@ from documentation_checker.text.numbers import HEADING_NUMBER
 from documentation_checker.text.tokenize import Token, TokenKind, tokenize
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Iterable, Mapping, Sequence
 
     from documentation_checker.compare.drafts import SegmentOp
     from documentation_checker.config import Config
@@ -141,12 +142,23 @@ class CompareStats:
 
 @dataclass(slots=True)
 class CompareResult:
-    """Outcome of the comparison of two documents."""
+    """Outcome of the comparison of two documents.
+
+    Attributes:
+        ref: The reference.
+        new: The new version of the document.
+        findings: The findings, in reference order.
+        stats: Figures about the comparison.
+        page_links: How much text links each page of the reference with
+            each page of the new document, by their numbers from 1, as
+            `page_links` counts it; none for HTML documents.
+    """
 
     ref: Document
     new: Document
     findings: list[Finding]
     stats: CompareStats
+    page_links: Mapping[tuple[int, int], float] = field(default_factory=dict)
 
 
 def _keyed(block: Block, patterns: Sequence[re.Pattern[str]]) -> Block:
@@ -844,4 +856,10 @@ def compare_documents(
         images=cfg.images,
     )
     drafts = [*text_drafts, *images.drafts]
-    return CompareResult(ref, new, finalize_drafts(drafts, cfg), stats)
+    return CompareResult(
+        ref,
+        new,
+        finalize_drafts(drafts, cfg),
+        stats,
+        page_links(ref_blocks, new_blocks, alignment.pairs),
+    )
