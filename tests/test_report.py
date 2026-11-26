@@ -162,10 +162,11 @@ def test_relative_link_non_ascii(tmp_path: Path) -> None:
 
 
 def test_terminal_summary(tmp_path: Path, result: CompareResult) -> None:
-    """The terminal summary counts findings and lists critical ones."""
+    """The terminal summary counts the findings, which only reports list."""
     text = click.unstyle(render_summary(result, [tmp_path / "report.md"]))
     assert "findings: 1 critical, 1 major, 0 minor, 0 info" in text
-    assert "CRITICAL block.missing" in text
+    assert "block.missing" not in text
+    assert "CRITICAL" not in text
     assert "reports: " in text
 
 
@@ -216,7 +217,7 @@ def test_terminal_warnings_sit_between_findings_and_reports(
     tmp_path: Path,
     pdf_result: CompareResult,
 ) -> None:
-    """Warnings follow the critical findings, reference first, then new."""
+    """Warnings follow the counts, reference first, then new."""
     new = replace(
         pdf_result.new,
         warnings=["1 page(s) without text, probably scanned: 1"],
@@ -224,7 +225,7 @@ def test_terminal_warnings_sit_between_findings_and_reports(
     both = replace(pdf_result, new=new)
     summary = render_summary(both, [tmp_path / "report.md"])
     lines = click.unstyle(summary).splitlines()
-    assert lines[-4].startswith("  CRITICAL block.missing  ref.pdf#page=3  ")
+    assert lines[-4].startswith("findings: ")
     assert lines[-3:-1] == [
         "warning: ref: 1 page(s) without text, probably scanned: 2",
         "warning: new: 1 page(s) without text, probably scanned: 1",
@@ -488,8 +489,6 @@ def test_summary_shows_controls_as_replacement_characters() -> None:
     assert "\x9b" not in summary
     assert "\x07" not in summary
     assert "ref=doc (1 pages, Gen\U0000fffderator)" in summary
-    plain = click.unstyle(summary)
-    assert "CRITICAL block.missing  a\U0000fffdb.html  " in plain
     assert "\x1b[33mwarning\x1b[0m: ref: odd\U0000fffdpage" in summary
 
 
@@ -529,13 +528,12 @@ def test_render_summary_keeps_document_values_on_their_line(
     )
     result = compare_documents(ref, make_document(), Config())
     lines = click.unstyle(render_summary(result, [])).splitlines()
-    assert len(lines) == 6
+    assert len(lines) == 5
     assert lines[0] == (
         f"compare  ref={tmp_path / 'do c'} (1 pages, Gen erator)  "
         "new=doc (1 pages, generic)"
     )
-    assert lines[3].startswith("  CRITICAL block.missing  a b.html  ")
-    assert lines[4] == "warning: ref: first second"
+    assert lines[3] == "warning: ref: first second"
 
 
 @pytest.mark.parametrize(
@@ -582,7 +580,7 @@ def test_visible_keeps_the_other_characters(char: str) -> None:
 
 
 def test_terminal_counts_a_group_once() -> None:
-    """A critical group is one line that tells its occurrences."""
+    """A critical group counts once, and its occurrences are not listed."""
     texts = [f"Paragraph {i} says that the backup is safe." for i in range(6)]
     ref = make_document(*[make_block(t) for t in texts])
     new = make_document(
@@ -592,7 +590,7 @@ def test_terminal_counts_a_group_once() -> None:
         render_summary(compare_documents(ref, new, Config()), []),
     )
     assert "findings: 1 critical, 0 major, 0 minor, 0 info" in summary
-    assert "(6 occurrences)" in summary
+    assert "occurrences" not in summary
 
 
 def test_markdown_sections_by_category(
@@ -874,7 +872,7 @@ def test_audit_reports_name_the_families_that_ran(tmp_path: Path) -> None:
 
 
 def test_audit_terminal_summary(tmp_path: Path) -> None:
-    """The summary names the document, the checks and the top findings."""
+    """The summary names the document and the checks, and counts findings."""
     lines = click.unstyle(
         render_audit_summary(audit_result(), [tmp_path / "report.md"]),
     ).splitlines()
@@ -884,7 +882,7 @@ def test_audit_terminal_summary(tmp_path: Path) -> None:
         " structure, a11y, text | profile screen"
     )
     assert lines[2] == "findings: 0 critical, 1 major, 0 minor, 0 info"
-    assert lines[3].startswith("  MAJOR structure.unresolved_reference")
+    assert lines[3:] == [f"reports: {tmp_path / 'report.md'}"]
 
 
 def test_columns_of_both_commands(result: CompareResult) -> None:
@@ -981,16 +979,12 @@ def test_audit_reports_and_thumbnail_are_stable(tmp_path: Path) -> None:
     assert len([name for name in first if name.endswith(".webp")]) == 1
 
 
-def test_audit_terminal_summary_shows_the_highest_severity() -> None:
-    """The findings of the highest severity are listed if major or above."""
+def test_audit_terminal_summary_lists_no_finding() -> None:
+    """The findings are counted, whatever their severity, never listed."""
     block = make_block("See Section ?? for the limits.")
     critical = Config(severity={UNRESOLVED: Severity.CRITICAL})
     assert _audit_summary(block, cfg=critical)[2:] == [
         "findings: 1 critical, 0 major, 0 minor, 0 info",
-        (
-            "  CRITICAL structure.unresolved_reference  index.html  "
-            '"See Section ?? for the limits."'
-        ),
         "reports: ",
     ]
     minor = Config(severity={UNRESOLVED: Severity.MINOR})
@@ -1000,24 +994,21 @@ def test_audit_terminal_summary_shows_the_highest_severity() -> None:
     ]
 
 
-def test_audit_terminal_summary_lists_five_and_counts_groups() -> None:
-    """Five findings at most are listed; a group tells its occurrences."""
+def test_audit_terminal_summary_counts_a_group_once() -> None:
+    """Eight findings count eight; six of one rule make a group, one."""
     marks = [make_block(f"See Section ?? for limit {n}.") for n in range(4)]
     cites = [make_block(f"As [?] shows, rule {n} holds.") for n in range(4)]
     lines = _audit_summary(*marks, *cites)
-    assert lines[2] == "findings: 0 critical, 8 major, 0 minor, 0 info"
-    assert len(lines) == 9
-    assert all(
-        line.startswith(f"  MAJOR {UNRESOLVED}  index.html  ")
-        for line in lines[3:8]
-    )
-    assert lines[8] == "reports: "
+    assert lines[2:] == [
+        "findings: 0 critical, 8 major, 0 minor, 0 info",
+        "reports: ",
+    ]
     six = [make_block(f"See Section ?? for limit {n}.") for n in range(6)]
     lines = _audit_summary(*six)
-    assert lines[2] == "findings: 0 critical, 1 major, 0 minor, 0 info"
-    assert lines[3].endswith(
-        '  "See Section ?? for limit 0." (6 occurrences)',
-    )
+    assert lines[2:] == [
+        "findings: 0 critical, 1 major, 0 minor, 0 info",
+        "reports: ",
+    ]
 
 
 def test_audit_summary_keeps_document_values_on_their_line(
@@ -1043,13 +1034,12 @@ def test_audit_summary_keeps_document_values_on_their_line(
         f"audit  doc={tmp_path / 'do c'} (1 pages, Gen erator)"
     )
     assert lines[1].startswith("blocks 1 | images not read | links 0 | ")
-    assert lines[-3:] == [
+    assert lines[2:] == [
+        "findings: 0 critical, 1 major, 0 minor, 0 info",
         "warning: first second",
         "warning: odd\U0000fffdpage",
         f"reports: {tmp_path / 'report.md'}",
     ]
-    (top,) = [line for line in lines if line.startswith("  MAJOR ")]
-    assert top.startswith(f"  MAJOR {UNRESOLVED}  a\U0000fffdb.html  ")
 
 
 def test_compare_markdown_keeps_its_two_columns(
